@@ -254,6 +254,53 @@ void main() {
                 expect(graph.tripleCount, equals(1));
                 expect(parser.errors, isEmpty);
             });
+
+            test('reads the SPARQL spelling, PREFIX and BASE without a dot',
+                () async {
+                // The W3C's own Turtle examples are written this way, so the
+                // first file anyone is likely to try carried the bug: the
+                // words read as a subject, no prefix was bound, and the
+                // statement that followed vanished — four triples went in
+                // and two came out.
+                const turtle = '''
+                PREFIX dc: <http://purl.org/dc/elements/1.1/>
+                PREFIX ex: <http://example.org/stuff/1.0/>
+                base <https://www.w3.org/TR/>
+
+                <rdf12-xml/>
+                  dc:title "RDF 1.2 XML Syntax" ;
+                  ex:editor [
+                    ex:fullName "Gregg Kellogg" ;
+                    ex:homePage <https://greggkellogg.net/>
+                  ] .
+                ''';
+
+                await parser.parseString(turtle);
+
+                expect(parser.errors, isEmpty);
+                expect(graph.tripleCount, equals(4));
+                expect(graph.getNamespace(0)?.prefix, equals('dc'));
+                expect(graph.getNamespace(0)?.uri,
+                    equals('http://purl.org/dc/elements/1.1/'));
+                expect(graph.getNamespace(1)?.prefix, equals('ex'));
+                expect(graph.baseUri, equals('https://www.w3.org/TR/'));
+            });
+
+            test('a name that begins with the word prefix is still a name',
+                () async {
+                // `prefix:` and `base:` are ordinary prefixes; only the bare
+                // word, with space after it, is the directive.
+                const turtle = '''
+                @prefix prefix: <http://example.org/p/> .
+                @prefix base: <http://example.org/b/> .
+                prefix:one base:two "three" .
+                ''';
+
+                await parser.parseString(turtle);
+
+                expect(parser.errors, isEmpty);
+                expect(graph.tripleCount, equals(1));
+            });
         });
 
         /// `@base` is what a *relative* reference — `<>`, `<Alice>` — is

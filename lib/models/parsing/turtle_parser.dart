@@ -192,9 +192,16 @@ class TurtleParser extends BaseRdfParser {
         }
     }
     
+    /// `PREFIX` or `BASE` at the head of a line, followed by space: the one
+    /// place either word can stand without being a prefixed name, which would
+    /// carry its colon straight after.
+    static final RegExp _sparqlDirective =
+        RegExp(r'^(prefix|base)\s', caseSensitive: false);
+
     bool _handlePrefix(String line) {
-        // @prefix prefix: <uri> .
-        final match = RegExp(r'prefix\s+([^:]*):?\s*<([^>]+)>\s*\.').firstMatch(line);
+        // @prefix prefix: <uri> .   or   PREFIX prefix: <uri>
+        final match = RegExp(r'prefix\s+([^:]*):?\s*<([^>]+)>\s*\.?',
+            caseSensitive: false).firstMatch(line);
         if (match != null) {
             final prefix = match.group(1)?.trim() ?? '';
             final uri = match.group(2)!;
@@ -208,8 +215,9 @@ class TurtleParser extends BaseRdfParser {
     }
     
     bool _handleBase(String line) {
-        // @base <uri> .
-        final match = RegExp(r'base\s+<([^>]+)>\s*\.').firstMatch(line);
+        // @base <uri> .   or   BASE <uri>
+        final match = RegExp(r'base\s+<([^>]+)>\s*\.?', caseSensitive: false)
+            .firstMatch(line);
         if (match != null) {
             // Document state, not the empty prefix. Filing it under `''` made
             // it a namespace binding, which it is not: a later `@prefix :`
@@ -249,10 +257,19 @@ class TurtleParser extends BaseRdfParser {
             return;
         }
         
-        // Handle lines starting with @
+        // Handle lines starting with @ — and Turtle 1.1's other spelling of
+        // the same two directives, `PREFIX` and `BASE` in any case and with
+        // no dot to end them, which is what the W3C's own examples use. Left
+        // to the tokenizer the word reads as a subject, the prefix is never
+        // bound, and the statement after it is lost.
         if (trimmed.startsWith('@')) {
             yield '@';
             yield trimmed.substring(1).trim();
+            return;
+        }
+        if (_sparqlDirective.hasMatch(trimmed)) {
+            yield '@';
+            yield trimmed;
             return;
         }
         
