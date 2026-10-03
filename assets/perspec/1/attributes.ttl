@@ -1,0 +1,279 @@
+@prefix n0: <https://arspec.org/ars/perspec/1/subjects#> .
+@prefix subj: <https://arspec.org/ars/perspec/1/subj_attributes#> .
+@prefix obj: <https://arspec.org/ars/perspec/1/obj_attributes#> .
+@prefix refby: <https://arspec.org/ars/lens/1/referenced-by#> .
+@prefix rec: <https://arspec.org/ars/perspec/1/rec_attributes#> .
+@prefix ars: <https://arspec.org/ars/spec/1/schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# == The Attributes family ==
+#
+# One perspective and its four services. Attributes is what stands on the
+# screen, and it is only ever run over a file: a tab of the file's, and no
+# lens (ars:inLensList false). The other four answer about a row handed to
+# them and are only ever run that way: no tab of the file's (ars:inFileTabs
+# false), and ars:serviceOf naming the perspective whose invocations run
+# them. Which end of that row each one reads, and how far it follows what it
+# finds, is the whole difference between them.
+#
+#   Subject's Attributes     what the parameter's subject says
+#   Object's Attributes      what the parameter's object says
+#   References to the        what says the parameter's subject —
+#     Subject                the same term, read the other way round
+#   Attributes+              what the parameter's subject says, and what
+#                            each value that is a node with no name says
+#                            in turn — the first, as a tree that follows
+#                            the anonymous nodes and stops at named terms
+#
+# The three that read the parameter's subject open a term as well
+# (ars:opensTerm): handed a term as the subject of a row with nothing else
+# in it, each has something to say about it. Object's Attributes reads the
+# other end, and handed such a row would find it empty.
+#
+# Being services, none of the four is listed for the user to switch on, and
+# none is offered inside another perspective's frames: they are part of what
+# Attributes is.
+
+# == Attributes ==
+#
+# One perspective in two readings, chosen by what it is run over:
+#
+#   over a file      -> every unique subject, its attributes beneath it
+#   on a parameter   -> the same, narrowed to what that parameter admits
+#
+# The root yields the master records — the distinct subjects — and displays
+# the subject. Beneath it stands an invocation rather than a query: it runs
+# Attributes+ against each record, handing the row over whole, and what
+# comes back is that subject's triples — and beneath any of them whose
+# value is a node with no name, that node's in turn, an anonymous node
+# being part of the record rather than a record of its own. Being an
+# invocation is what gives an expanded record its tab row: the invocation
+# names two tabs, the attributes first and what points at the subject
+# second, and opens on the first of them with anything to say — a subject
+# with no attributes of its own may still be all over the file.
+
+n0:perspec a ars:Perspective ;
+    ars:title "Attributes" ;
+    ars:description "Each subject with its attributes gathered beneath it — the file as the things it talks about." ;
+    ars:inLensList false ;
+    ars:rootDataSource n0:ds_subjects .
+
+# Both levels take additions, every action resting on shown: an addition to
+# the root mints a fresh subject, and one to the invoked perspective's own
+# root grows a triple under it — the join there pins it to this record's
+# subject.
+
+n0:ds_subjects a ars:DataSource ;
+    ars:distinctBy rdf:subject ;
+    ars:subjectVisible true ;
+    ars:child n0:inv_attributes .
+
+n0:inv_attributes a ars:Invocation ;
+    ars:order 0 ;
+    ars:tab [ a ars:Tab ; ars:order 0 ; ars:perspective rec:perspec ] ,
+            [ a ars:Tab ; ars:order 1 ; ars:perspective refby:perspec ] .
+
+# == Subject's Attributes ==
+#
+# What the graph says about the term the invoking row holds as its subject.
+# The join reads that row as the parent, which is the parameter triple the
+# invocation makes — one filter, whatever stands above it. Attributes+ is
+# this one level with the tree beneath, and is what Attributes itself runs;
+# this stays for whoever wants the one level alone — a box in the lens
+# list, a tab of an invocation's naming, and "Open term with…".
+#
+# It reads everywhere. Asking what the graph says about *this* term is a
+# question about the term, not about the file it happened to be typed in: the
+# ontologies the file imports say things about it too, as do the user's own
+# annotations and the vocabularies the app ships with. The root of Attributes
+# stays on the source file alone, since "the subjects of this file" is a
+# question about the file.
+#
+# Only the source file and its imports are backed today; the other two are
+# declared now so this picks them up when they arrive.
+
+subj:perspec a ars:Perspective ;
+    ars:title "Subject's Attributes" ;
+    ars:description "What the graph says about the term a row names as its subject — its predicates and their values." ;
+    ars:serviceOf n0:perspec ;
+    ars:inFileTabs false ;
+    ars:opensTerm true ;
+    ars:rootDataSource subj:ds_attributes .
+
+subj:ds_attributes a ars:DataSource ;
+    ars:predicateVisible true ;
+    ars:objectVisible true ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:loadAppDefaults true ;
+    # A new row is about the term the row is handed — what the condition
+    # below joins on, said again so the row starts there wherever the
+    # condition is not the one settling it.
+    ars:adding [
+        a ars:RowAction ;
+        ars:subjectDefaultValue [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ] ;
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:subject ] ;
+        ars:op ars:eq ;
+        ars:value [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ]
+    ] .
+
+# == Object's Attributes ==
+#
+# The same, about the other end of the row: the term it points *at*. Nothing
+# invokes it — it is here for whoever wants the values a row names opened up
+# where they stand, a predicate + object row leading into what its object is:
+# one box in the lens list, for that record, or one more tab of an
+# invocation's naming.
+
+obj:perspec a ars:Perspective ;
+    ars:title "Object's Attributes" ;
+    ars:description "What the graph says about the term a row points at — the object's own predicates and their values." ;
+    ars:serviceOf n0:perspec ;
+    ars:inFileTabs false ;
+    ars:rootDataSource obj:ds_attributes .
+
+obj:ds_attributes a ars:DataSource ;
+    ars:predicateVisible true ;
+    ars:objectVisible true ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:loadAppDefaults true ;
+    # A new row is about the term the row points at, the same term the
+    # condition below joins on — said here as well, so the row starts there
+    # wherever the condition is not the one settling it.
+    ars:adding [
+        a ars:RowAction ;
+        ars:subjectDefaultValue [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:subject ] ;
+        ars:op ars:eq ;
+        ars:value [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ]
+    ] .
+
+# == References to the Subject ==
+#
+# Every triple whose object is the term the row it is handed names as its
+# subject, shown as that triple's subject and predicate: who says it, and
+# what they say. The way back in — the graph reads one way, and a term with
+# nothing under it may still be all over the file.
+#
+# One datasource, and it is the root. The question is only ever asked about
+# a row handed in, so the join is the whole of the perspective; asked of a
+# file it would first have to gather every term anything references, which
+# is a different question and one nothing here asks.
+
+refby:perspec a ars:Perspective ;
+    ars:title "References to the Subject" ;
+    ars:description "What points at the term a row names as its subject: the subject and predicate of every triple that term stands as the object of." ;
+    ars:serviceOf n0:perspec ;
+    ars:inFileTabs false ;
+    ars:opensTerm true ;
+    ars:rootDataSource refby:ds_references .
+
+refby:ds_references a ars:DataSource ;
+    ars:subjectVisible true ;
+    ars:predicateVisible true ;
+    # A new row points at the term the row is handed — the object the
+    # condition below joins on.
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ] ;
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:object ] ;
+        ars:op ars:eq ;
+        ars:value [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ]
+    ] ;
+    # The join once more, as the condition on standing at all: a statement is
+    # looked for whose object is the term handed in, and where there is none
+    # the perspective has no tab — in an opened record's frame, the tab row
+    # is then Attributes+ alone. The filter would have found nothing either;
+    # this is what keeps a tab from opening onto nothing.
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:object ] ;
+        ars:op ars:eq ;
+        ars:value [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ]
+    ] .
+
+# == Attributes+ ==
+#
+# Subject's Attributes, and under each value that is a node with no name the
+# same question asked of that node: what the graph says about the term the
+# row is handed, and beneath each anonymous object what it says about that
+# object in turn — a term's attributes as a tree, as far as the anonymous
+# nodes go. What Attributes runs under each of its records.
+#
+# The subordinate is an invocation of this very perspective, handed a row
+# holding the invoking row's object as its subject and nothing else; the
+# root's join then reads that object exactly as it read the term above. It
+# is enabled only where that object is a node with no name (ars:enableIf,
+# ars:isBlank): an anonymous node is part of the record it hangs off — a
+# selector, an address, written inline — and its attributes belong beneath
+# it; a named term is a record of its own, reached from its own row or with
+# "Open term with…"; and a literal has none, no triple having a literal for
+# its subject. The condition reads the invoking row as the parent, the way
+# any subordinate's does.
+#
+# The tree is drawn one turn ahead of the data: where the rows are made, a
+# perspective already standing above on the path is not drawn again, so a
+# level shows with the next beneath it and no further. It goes deeper as the
+# reader does — expanding a row puts up the invocation's frame, run on that
+# row's value, with a further turn beneath, and "Open term with…" starts the
+# tree over at any term. Under Attributes the one turn drawn ahead is
+# Attributes' own, so a value's node shows nothing beneath its row until the
+# row is opened — and then the frame, all the same, the subject above it
+# left as it was.
+
+rec:perspec a ars:Perspective ;
+    ars:title "Attributes+" ;
+    ars:description "What the graph says about the term a row names as its subject, and beneath each value that is a node with no name what it says about that node in turn — the term's attributes as a tree, as far as the anonymous nodes go." ;
+    ars:serviceOf n0:perspec ;
+    ars:inFileTabs false ;
+    ars:opensTerm true ;
+    ars:rootDataSource rec:ds_attributes .
+
+rec:ds_attributes a ars:DataSource ;
+    ars:predicateVisible true ;
+    ars:objectVisible true ;
+    # A click on a value both looks into it and opens its editor: a value
+    # here may be a node with attributes of its own beneath it, which the
+    # one-level services have no reason to unfold.
+    ars:objectOnClick ars:expandAndEdit ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:loadAppDefaults true ;
+    # A new row is about the term the row is handed, at every level.
+    ars:adding [
+        a ars:RowAction ;
+        ars:subjectDefaultValue [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ] ;
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:subject ] ;
+        ars:op ars:eq ;
+        ars:value [ a ars:TermValue ; ars:role rdf:subject ; ars:bindingDistance 1 ]
+    ] ;
+    ars:child rec:inv_recursive .
+
+# Itself, on the value: the invoking row's object where the subject was, and
+# nothing in the other two parts — and only where that object is a node with
+# no name.
+
+rec:inv_recursive a ars:Invocation ;
+    ars:order 0 ;
+    ars:perspective rec:perspec ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
+        ars:op ars:isBlank
+    ] ;
+    ars:subjectParameter [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
+    ars:predicateParameter [ a ars:BlankValue ] ;
+    ars:objectParameter [ a ars:BlankValue ] .

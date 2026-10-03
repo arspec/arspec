@@ -1,0 +1,716 @@
+# The view vocabulary (`av:`), described in its own terms.
+#
+# This ontology documents every term the app writes or reads when a view is
+# serialized — a stylesheet, its content rules included — see
+# `lib/controllers/ps_sheet_rdf.dart`, the authority on how they are used.
+# KEEP THE TWO IN STEP: a term added to, removed from, or repurposed in the
+# serializer changes this file in the same commit (design.md: "The
+# vocabulary ontologies").
+#
+# Scope: presentation, and nothing else. A style says how the information a
+# perspective provides looks and where it stands. What may be done with it is
+# the perspective's to allow (ars:adding, ars:deletion, the click actions) and
+# the app's to carry out, the same under every view; no term here reacts to
+# an event or gives an entry behaviour, and none will (goal.md, "The Core,
+# and the Sea Around It"; docs/structure_as_rules.md, "What a sheet is for").
+#
+# Defaults are silence throughout the vocabulary: a property at its default is
+# not written, so an older file and a default-valued one read alike.
+#
+# The perspec vocabulary these views present — `ars:` — lives in the ontology
+# beside this one: ../schema.ttl. The built-in view written in these terms is
+# assets/view/1/default.ttl; the meaning of every layout property, and the
+# thinking behind the algebra, is docs/layout_algebra.md.
+
+@prefix av:  <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://arspec.org/ars/spec/1/schema/view> a owl:Ontology ;
+    rdfs:label "Arspec views" ;
+    rdfs:comment "Perspective presentation primitives: av:Style nodes over the schema derived from the datasources, stating structure and look alike in the terms of the layout algebra. Presentation only: a style says how the information a perspective provides looks and where it stands, never what may be done with it — that is the perspective's to allow (ars:adding, ars:deletion, the click actions) and the app's to carry out, the same under every view. Nothing in this vocabulary reacts to an event or gives an entry behaviour; the view's own controls (av:Pager, av:Frame) may be dressed by a style and are never made, placed or removed by one. The actions themselves — adding, copying, deleting — stand in no view at all: they are the app's, offered on the row's menu, by its key and in the action bar, and no style meets them." .
+
+# Shared across the sheet — the ars: vocabulary declares its own
+# counterparts of these under the spec namespace; a view document uses only
+# these.
+
+av:order a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Order" ;
+    rdfs:comment "A member's position in its ordered collection — a file's styles, a content list's items. For the styles the position is also the rank: of two matching styles in one file, the later wins. A number, not an integer: what the app writes is 0, 1, 2 …, but a style hand-written between two of them may take 1.5 and leave every other number alone." ;
+    rdfs:range xsd:decimal .
+
+av:role a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Role" ;
+    rdfs:comment "A term's part of the triple — as a selector condition, and on an av:Term content element: rdf:subject, rdf:predicate or rdf:object, the parts by their W3C reification names. Matched by local name, so a plain string naming the part reads too." ;
+    rdfs:range rdf:Property .
+
+# ── Styles ───────────────────────────────────────────────────────────────────
+#
+# How a view stands and looks: av:Style nodes over the derived schema's
+# entries, setting the properties of docs/layout_algebra.md. See
+# lib/controllers/ps_sheet_rdf.dart, the authority on how these are used,
+# and assets/view/1/default.ttl, the built-in sheet written in them. A style
+# never names a font or a pixel colour: it names roles and tokens, and the
+# theme says what they come to.
+#
+# A file is a sheet: there is no wrapper entity — a document's styles are
+# its top-level av:Style nodes, ordered by av:order, and the document's own
+# owl:Ontology header names the sheet (rdfs:label) and gives it its identity
+# (the header IRI). Sheets cascade by where they come from — the user's
+# preferences, the topic's, the file's own, the app's defaults, ranked as
+# the app's style-priority preference arranges them — a file's own styles
+# over what it imports.
+
+av:Style a rdfs:Class, owl:Class ;
+    rdfs:label "Style" ;
+    rdfs:comment "One style: a selector and what it sets — av:select names the entries it applies to, av:set carries what it states for them, structure and look alike. Of the styles matching an entry, one from a higher-priority sheet wins a property outright; within one file, the later style wins — a sheet reads top to bottom, refinements after the base, and a selector only gates its style: its complexity carries no weight, deliberately unlike CSS. What the entry states itself wins over every style. A style may carry a name in an rdfs:label — RDF's own name slot, not a term of this vocabulary — for the inspector to point at when it says where a value came from." .
+
+av:select a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Select" ;
+    rdfs:comment "The style's av:Selector." ;
+    rdfs:domain av:Style ;
+    rdfs:range av:Selector .
+
+av:set a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Set" ;
+    rdfs:comment "The anonymous node carrying what the style states: any of the geometry, container and look properties below, one triple each, and the content field — av:content, the structure the style states for the spine node it matches. Silence states nothing. A property outside this vocabulary on this node is kept and written back unread — for a renderer that knows it." ;
+    rdfs:domain av:Style ;
+    rdfs:range rdfs:Resource .
+
+av:content a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Content" ;
+    rdfs:comment "The list a node holds, wherever there is one: on a style's av:set node, and on an av:Layout content item for the items standing in it — one shape of list, an anonymous node of av:item elements ordered by av:order, so whatever reads one reads the other, to any depth. On a style's av:set node it is the structure the style states for the spine node it matches — a Source, a Record, its Main or its Details — as an anonymous node of av:item elements, each typed by the element it produces (av:Term, av:Layout, av:Text) or by a placement marker for a spine child the node already has (av:Records in a Source, av:Main and av:Details in a Record, av:Sources in a Details), ordered by av:order. Atomic: of the matching styles stating content, the cascade winner supplies the whole list — content is never merged. A node no style dresses keeps its spine children, and one a style leaves unplaced stands at the end regardless: the spine is not the styles' to make. A Source's content stands once per list, on the row the list hangs off; a Record's, its Main's and its Details' once per row. Nor is what a list may do the styles' to make: that is the perspective's (ars:adding and kin), and stands nowhere in the view. Each spine node cascades apart, so a style restating a record's Main leaves its Details to whoever stated that." ;
+    rdfs:range rdfs:Resource .
+
+av:Records a rdfs:Class, owl:Class ;
+    rdfs:label "Records" ;
+    rdfs:comment "In Source content: where the source's records stand — among what the list states once for all its rows (a line over them, a note under them), or inside an av:Layout item of the list's own, which puts a box round the rows and leaves the rest outside it. Placement only — the records exist regardless, and left unplaced they stand at the end, over the list's Add." .
+
+av:Sources a rdfs:Class, owl:Class ;
+    rdfs:label "Sources" ;
+    rdfs:comment "Anywhere in a record's content — its Details by convention, but its Record, its Main, or a layout inside any of the three as well: where the record's child sources stand, every one nothing has placed yet. Placement only — the sources exist regardless. Markers take their turn in content order, the Record's content before the Main's before the Details' own; what nothing placed stands at the end of the Details, its home." .
+
+av:Selector a rdfs:Class, owl:Class ;
+    rdfs:label "Selector" ;
+    rdfs:comment "What a style applies to: every stated condition must hold of an entry. Conditions match what the schema is — element, types, parent, role, source, whether it is of the top-level list — and the row the entry is drawn for: what it is doing (av:edited, av:expanded, av:selected) and what it is about (av:recordSubject, av:recordPredicate, av:recordObject). Never what another style resolved. A selector stating a condition of this vocabulary the reader does not know — one since retired, one yet to come — holds of nothing: a condition only ever narrows a style, and one read without it would apply where its author said it should not." .
+
+av:element a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Element" ;
+    rdfs:comment "What the entry is: one of av:Source, av:Record, av:Main, av:Details, av:Layout, av:Term, av:Text, and the view's own chrome, av:Pager and av:Frame — the same constant a content item is typed with (av:item [ a av:Term ]), asked from the selector's side; the chrome no content item produces, but a style may dress it. An entry's element is fixed when the entry is made and never changes afterwards: the spine gives a Source, a Record and its Main and Details theirs, a content item gives its own to what it produces, and no style, state or later pass can add to it or take it away. It is what the renderer draws the entry as, and the one condition every style can rely on absolutely." ;
+    rdfs:domain av:Selector ;
+    rdfs:range av:Element .
+
+# Why an av:element property, not rdf:type over a class hierarchy: the derived
+# schema is never a graph — its entries are runtime objects the content
+# pass produced — and a selector names their element the way CSS names an
+# element, by equality against a closed set. Matching on rdf:type with
+# rdfs:subClassOf would put a class hierarchy between a style and its match:
+# which document supplies the hierarchy, and why a style matched, would take
+# inference to answer, where the inspector must read the reason straight
+# off the entry. The open ends are elsewhere, and are enough: the further
+# rdf:types a content item carries beside its element, asked by av:type —
+# the classes a document invents — extra av:set properties by IRI, and
+# av:layout's open container kinds. A new element needs a renderer that
+# can draw it, so it arrives with a vocabulary version, never with a
+# document. (design.md: "Custom Perspectives".)
+#
+# The elements name what the reader sees on screen — a section, a term,
+# an action — never the machinery that produced it (a datasource binding,
+# a lens slot): a sheet is written about the visible view, and its author
+# should recognize every element by looking at one.
+#
+# And an element sticks. It is decided once, at the moment the entry is
+# created — by the spine for a Source or a Record, by the content item
+# for everything else — and it is the entry's for good: not a property
+# the cascade resolves, not a classification a style may add to (that is
+# av:type), not a fact about the moment (that is av:edited and kin). A
+# style asking av:element av:Term gets the same answer on every read, in
+# every state, from every sheet.
+
+av:Element a rdfs:Class, owl:Class ;
+    rdfs:label "Element" ;
+    rdfs:comment "The elements a derived view schema is made of — what a content item is typed with, and the constants for av:element and av:parentElement. A closed set matched by equality, named for what the reader sees; extension speaks through the further rdf:types an item carries (av:type) and extra av:set properties, a new element only through a new vocabulary version. An entry has exactly one, given when it is made and kept for as long as it stands." .
+
+av:Source a av:Element ;
+    rdfs:label "Source" ;
+    rdfs:comment "The point where a datasource enters the view: the list — one per datasource: its records, whatever its content states once per list round them (a text, a layout, never a term: a list has no row of its own to read one off), and at its foot its Add. The root source is the one no other holds (av:root true). As an av:item, with av:sourceId, a placement marker for one child source of the record — a nested list or an invocation, by the id it was declared with — anywhere in the record's content: placed, it is out of the Details. An id no child goes by places nothing." .
+
+av:Record a av:Element ;
+    rdfs:label "Record" ;
+    rdfs:comment "One record of a source, materialized once per matching row. Everything inside repeats with every match. The spine gives it two children, its av:Main and its av:Details, and a Record's own content does no more than place them (the av:Main and av:Details markers); each has content of its own." .
+
+av:Main a av:Element ;
+    rdfs:label "Main" ;
+    rdfs:comment "A record's row: what it shows of its own binding — the line of its shown parts, or a lone one, or whatever else its content states. The spine's, made with every record; its content is where a style says what a record looks like. Empty, the record is rowless. As an av:item in a Record's content, a placement marker for it." .
+
+av:Details a av:Element ;
+    rdfs:label "Details" ;
+    rdfs:comment "What hangs off a record's row: the sources of its child datasources — their home, where every one stands that nothing placed elsewhere, by av:Sources or at its end — and whatever else its content states. A convenience, with its Main: a sheet may place the child sources anywhere in the record and leave the two empty, and an empty one stands nothing. The spine's, made with every record. How far it stands in from the row is its own av:paddingStart, the built-in sheet's to state (one indent step, none where the record shows nothing); while the record is expanded the frame steps in round it by that much. As an av:item in a Record's content, a placement marker for it." .
+
+av:Layout a av:Element ;
+    rdfs:label "Layout" ;
+    rdfs:comment "A plain container: a line of term references, a content element's av:Layout, whatever else was planted. As an av:item, it holds its own items the way a style holds a node's: under an av:content of its own." .
+
+av:Term a av:Element ;
+    rdfs:label "Term" ;
+    rdfs:comment "A shown term — one displayed part of a row." .
+
+av:Text a av:Element ;
+    rdfs:label "Text" ;
+    rdfs:comment "A piece of text: fixed, or — av:labelled — the datasource's label standing as a cell of its own." .
+
+av:Pager a av:Element ;
+    rdfs:label "Pager" ;
+    rdfs:comment "A long list's page control: the view's own chrome, standing once per list after its rows where the rows come to more than a page. No content item produces one; a style selecting it dresses every pager alike." .
+
+av:Frame a av:Element ;
+    rdfs:label "Frame" ;
+    rdfs:comment "The frame an invocation puts up inside an opened record: its tab row, and the body of the selected tab beneath — the invoked perspective run on the record's row. Chrome likewise: one node for every frame, a stack unless a style says otherwise." .
+
+av:type a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Type" ;
+    rdfs:comment "On an av:Selector: a class the entry must be typed with — its element, or one of the further rdf:types its content item carried beside the element (av:item [ a av:Layout, av:Line ]), which the produced entry keeps. A class in CSS's sense, written as the RDF class it is: an IRI, from this vocabulary (av:Line, av:Name — what the built-in sheet stamps) or from any namespace a sheet of its own minted. Like the element, an entry's types are decided when it is made and never change: no style adds one, no state alters one, and no later pass can see a type an earlier one did not." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Class .
+
+av:parentElement a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Parent element" ;
+    rdfs:comment "The element (an av:Element) of the container the entry stands in." ;
+    rdfs:domain av:Selector ;
+    rdfs:range av:Element .
+
+av:parentType a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Parent type" ;
+    rdfs:comment "A class the container the entry stands in is typed with — av:type, asked one step up." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Class .
+
+av:sourceId a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Source id" ;
+    rdfs:comment "On a selector: the id of the source the entry is over (an av:Source) or reads from (anything inside one) — the local name of the IRI of the datasource behind it, stable across derivations. Named for what a style sees, the Source, as av:sourceType is. On an av:Source content item: which child source the item places — the id the child datasource, or the invocation, was declared with under the record." ;
+    rdfs:range xsd:string .
+
+av:sourceType a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Source type" ;
+    rdfs:comment "A class the datasource the entry is over (a Source) or reads from (anything inside one) declares — one of the further rdf:types on its ars:DataSource node, beside ars:DataSource. The nearest source's, like av:sourceId: the condition holds of the Source, its Record and all they hold, and stops where a child source begins, which has classes of its own. Matched by equality, never through a class hierarchy, so why a style applied reads straight off the entry. A class in CSS's sense: declared where the perspective is written, given its look where the styles are — the built-in sheet keys its av:Modifier looks on this, and a sheet of the user's own may key on any IRI." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Class .
+
+av:showsCount a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Shows count" ;
+    rdfs:comment "How many parts the entry's own datasource shows, as a selector condition — what splits a bare term from a line of them. Holds of the spine (a Source, its Records, their Main and Details); an entry with no datasource never matches." ;
+    rdfs:domain av:Selector ;
+    rdfs:range xsd:integer .
+
+av:root a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Root" ;
+    rdfs:comment "Whether the entry is of the perspective's top-level list: true holds of the root source and of everything in it that no nested list holds — its records, their Main and Details, the lines and terms in them, its Add — and false of every nested list and all it holds. Which list, never how deep: a box a style draws round a list's rows, or round a record's row, changes neither answer. An invoked perspective is a view of its own, so its top-level list is the root of that one wherever it is shown. Of an entry standing in no list — the pager, an invocation's frame — neither holds." ;
+    rdfs:domain av:Selector ;
+    rdfs:range xsd:boolean .
+
+# What the row is about. The three below read the statement the entry is
+# drawn for — the nearest record's binding — and so, like av:edited and
+# av:expanded, they are facts about one row rather than about the schema:
+# a style stating one holds of alice's record and not of bob's. They read
+# the binding and nothing a style resolved, so the one-pass discipline
+# stands. A value is an IRI, matched in full, or a literal, matched by its
+# text alone — datatype and language are no part of it. A blank node has
+# no name a sheet could write, and answers for nothing.
+
+av:recordSubject a rdf:Property ;
+    rdfs:label "Record subject" ;
+    rdfs:comment "On an av:Selector: the condition that the statement the entry is drawn for — the nearest record's — has this subject: an IRI, or a literal by its text. Holds of the record and of everything inside it, a nested list included, and stops where a nested record begins, which has a statement of its own. A fact about the row rather than about the schema, like av:edited: read off the row's binding, never off anything a style resolved." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Resource .
+
+av:recordPredicate a rdf:Property ;
+    rdfs:label "Record predicate" ;
+    rdfs:comment "On an av:Selector: the condition that the statement the entry is drawn for has this predicate — how a style reaches every rdfs:label, say, or every rdf:type. Holds as av:recordSubject does: of the record and of all inside it." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Resource .
+
+av:recordObject a rdf:Property ;
+    rdfs:label "Record object" ;
+    rdfs:comment "On an av:Selector: the condition that the statement the entry is drawn for has this object — an IRI, or a literal by its text, \"Alice\" matching the stored \"Alice\" whatever its datatype or language. Holds as av:recordSubject does." ;
+    rdfs:domain av:Selector ;
+    rdfs:range rdfs:Resource .
+
+# Lengths. One unit algebra for tracks, sizes, gaps and padding, written in its
+# lexical form: "auto" (content-sized), "12px", "50%" (of the container),
+# "1fr" (a share of what is left), "min..max" (a clamp of any two), or a
+# spacing token by name — "none", "tight", "related", "unrelated", "section",
+# "indent" — which the theme resolves. A bare number is pixels.
+
+av:width a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Width" ;
+    rdfs:comment "The entry's width, a length. Silence is auto." ;
+    rdfs:range xsd:string .
+
+av:height a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Height" ;
+    rdfs:comment "The entry's height, a length. Silence is auto." ;
+    rdfs:range xsd:string .
+
+av:minWidth a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Min width" ;
+    rdfs:comment "A lower bound on the width, a length." ;
+    rdfs:range xsd:string .
+
+av:maxWidth a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Max width" ;
+    rdfs:comment "An upper bound on the width, a length. A share (fr) with an upper bound is frozen at it once the share would pass it, and what it no longer takes goes to the other shares — narrow the container and every share shrinks in proportion instead." ;
+    rdfs:range xsd:string .
+
+av:minHeight a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Min height" ;
+    rdfs:comment "A lower bound on the height, a length." ;
+    rdfs:range xsd:string .
+
+av:maxHeight a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Max height" ;
+    rdfs:comment "An upper bound on the height, a length." ;
+    rdfs:range xsd:string .
+
+av:paddingStart a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Padding start" ;
+    rdfs:comment "Room inside the entry's start edge — the side reading begins at, so right-to-left locales mirror on their own — a length. What stands a record's Details in from its row." ;
+    rdfs:range xsd:string .
+
+av:paddingTop a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Padding top" ;
+    rdfs:comment "Room inside the entry's top edge, a length." ;
+    rdfs:range xsd:string .
+
+av:paddingEnd a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Padding end" ;
+    rdfs:comment "Room inside the entry's end edge, a length." ;
+    rdfs:range xsd:string .
+
+av:paddingBottom a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Padding bottom" ;
+    rdfs:comment "Room inside the entry's bottom edge, a length." ;
+    rdfs:range xsd:string .
+
+av:gridColumn a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Grid column" ;
+    rdfs:comment "Where the entry stands on its container's column axis, counting tracks from 0: \"2\" (the third track), \"1..3\" (the second and third), \"span 2\" (wherever it lands, two tracks wide). Silence auto-places." ;
+    rdfs:range xsd:string .
+
+av:gridRow a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Grid row" ;
+    rdfs:comment "Where the entry stands on its container's row axis, in the form of av:gridColumn." ;
+    rdfs:range xsd:string .
+
+av:gridArea a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Grid area" ;
+    rdfs:comment "A name from the container's av:areas the entry stands in. Wins over av:gridColumn / av:gridRow." ;
+    rdfs:range xsd:string .
+
+av:Alignment a rdfs:Class, owl:Class ;
+    rdfs:label "Alignment" ;
+    rdfs:comment "Where a child sits in the room it is given, per axis: constants for av:justify, av:align, av:justifySelf, av:alignSelf." .
+
+av:start a av:Alignment ;
+    rdfs:label "Start" ;
+    rdfs:comment "At the start of its room." .
+
+av:center a av:Alignment ;
+    rdfs:label "Center" ;
+    rdfs:comment "In the middle of its room." .
+
+av:end a av:Alignment ;
+    rdfs:label "End" ;
+    rdfs:comment "At the end of its room." .
+
+av:stretch a av:Alignment ;
+    rdfs:label "Stretch" ;
+    rdfs:comment "Filling its room." .
+
+av:baseline a av:Alignment ;
+    rdfs:label "Baseline" ;
+    rdfs:comment "On the text baseline of its siblings." .
+
+av:justifySelf a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Justify self" ;
+    rdfs:comment "How the entry sits on the inline axis: an av:Alignment. Silence takes the container's av:justify." ;
+    rdfs:range av:Alignment .
+
+av:alignSelf a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Align self" ;
+    rdfs:comment "How the entry sits on the block axis: an av:Alignment. Silence takes the container's av:align." ;
+    rdfs:range av:Alignment .
+
+av:widthGroup a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Width group" ;
+    rdfs:comment "A size group: every entry naming the same group, anywhere in the view, is as wide as the widest of them. What lines a tree of sections up as a table." ;
+    rdfs:range xsd:string .
+
+av:heightGroup a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Height group" ;
+    rdfs:comment "A size group on the block axis: every member as tall as the tallest." ;
+    rdfs:range xsd:string .
+
+av:drawOrder a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Draw order" ;
+    rdfs:comment "The entry's order among its siblings when drawn; ties keep document order. Not av:order, which orders a collection's members when written." ;
+    rdfs:range xsd:integer .
+
+av:x a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "X" ;
+    rdfs:comment "The entry's position on the inline axis in an av:canvas container, a length. Read by no other layout kind." ;
+    rdfs:range xsd:string .
+
+av:y a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Y" ;
+    rdfs:comment "The entry's position on the block axis in an av:canvas container, a length." ;
+    rdfs:range xsd:string .
+
+av:layout a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Layout" ;
+    rdfs:comment "How a container arranges its children: av:grid, av:canvas, or an IRI of an extension's own. Open: a renderer that does not know the kind draws it as av:grid." ;
+    rdfs:range av:LayoutKind .
+
+av:LayoutKind a rdfs:Class, owl:Class ;
+    rdfs:label "Layout kind" ;
+    rdfs:comment "The kinds of container, as constants for av:layout; open to IRIs outside this vocabulary." .
+
+av:grid a av:LayoutKind ;
+    rdfs:label "Grid" ;
+    rdfs:comment "Tracks — the one kind the algebra is built on. A one-column grid is a stack, a one-row grid a line, auto-fill a wrap, named areas a whole screen's regions, children sharing a cell an overlay. The default." .
+
+av:canvas a av:LayoutKind ;
+    rdfs:label "Canvas" ;
+    rdfs:comment "Free placement: children stand where their av:x / av:y put them." .
+
+av:direction a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Direction" ;
+    rdfs:comment "The axis auto-placed children flow along: av:column (a stack, the default) or av:row (a line)." ;
+    rdfs:range av:Direction .
+
+av:Direction a rdfs:Class, owl:Class ;
+    rdfs:label "Direction" ;
+    rdfs:comment "The two axes, as constants for av:direction." .
+
+av:column a av:Direction ;
+    rdfs:label "Column" ;
+    rdfs:comment "Down the block axis." .
+
+av:row a av:Direction ;
+    rdfs:label "Row" ;
+    rdfs:comment "Along the inline axis." .
+
+av:reverse a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Reverse" ;
+    rdfs:comment "Whether children flow from the end. Silence is false." ;
+    rdfs:range xsd:boolean .
+
+av:columns a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Columns" ;
+    rdfs:comment "The container's column tracks: lengths separated by spaces, \"auto 1fr\", or \"auto-fill(<length>)\" for as many as fit. Silence is one auto column — or, when the direction is av:row, one per child." ;
+    rdfs:range xsd:string .
+
+av:rows a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Rows" ;
+    rdfs:comment "The container's row tracks, in the form of av:columns. Silence is auto rows, as many as placement needs." ;
+    rdfs:range xsd:string .
+
+av:rowGap a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Row gap" ;
+    rdfs:comment "Space between children on the block axis, a length. Silence is the related token." ;
+    rdfs:range xsd:string .
+
+av:columnGap a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Column gap" ;
+    rdfs:comment "Space between children on the inline axis, a length. Silence is the related token." ;
+    rdfs:range xsd:string .
+
+av:justify a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Justify" ;
+    rdfs:comment "How children sit on the inline axis when they do not say: an av:Alignment. Silence is av:stretch." ;
+    rdfs:range av:Alignment .
+
+av:align a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Align" ;
+    rdfs:comment "How children sit on the block axis when they do not say: an av:Alignment. Silence is av:start." ;
+    rdfs:range av:Alignment .
+
+av:areas a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Areas" ;
+    rdfs:comment "Named cells: one name per cell, rows separated by \" / \" — \"header header / nav main\". A name repeated across neighbouring cells spans them; \".\" is an unnamed cell." ;
+    rdfs:range xsd:string .
+
+av:labelPlacement a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Label placement" ;
+    rdfs:comment "Whether and where the entry's label is drawn: an av:LabelPlacement. Silence is av:heading." ;
+    rdfs:range av:LabelPlacement .
+
+av:LabelPlacement a rdfs:Class, owl:Class ;
+    rdfs:label "Label placement" ;
+    rdfs:comment "Where a labelled entry's label goes, as constants for av:labelPlacement." .
+
+av:heading a av:LabelPlacement, av:TextRole ;
+    rdfs:label "Heading" ;
+    rdfs:comment "As a placement: over what the entry holds. As a role: a heading over a group." .
+
+av:leading a av:LabelPlacement ;
+    rdfs:label "Leading" ;
+    rdfs:comment "Before what the entry holds, on the same line — a caption." .
+
+av:none a av:LabelPlacement, av:Connector, av:TextDecoration ;
+    rdfs:label "None" ;
+    rdfs:comment "As a placement: the label is not drawn. As a connector: no line. As a decoration: no line on the text — and, stated, it takes off any line the text role carries of its own." .
+
+av:TextRole a rdfs:Class, owl:Class ;
+    rdfs:label "Text role" ;
+    rdfs:comment "What a piece of text is, for the theme to style: constants for av:labelRole and av:textRole. A sheet names roles, never fonts." .
+
+av:caption a av:TextRole ;
+    rdfs:label "Caption" ;
+    rdfs:comment "A caption leading a value." .
+
+av:body a av:TextRole ;
+    rdfs:label "Body" ;
+    rdfs:comment "Running text." .
+
+av:code a av:TextRole ;
+    rdfs:label "Code" ;
+    rdfs:comment "Text that is code: an IRI, a literal's lexical form, a fragment of Turtle. Which face that comes to is the theme's to pick." .
+
+av:labelRole a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Label role" ;
+    rdfs:comment "The role the entry's label is drawn in: an av:TextRole. Silence is av:heading." ;
+    rdfs:range av:TextRole .
+
+av:textRole a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Text role" ;
+    rdfs:comment "The role the entry's own text is drawn in: an av:TextRole. Silence is av:body." ;
+    rdfs:range av:TextRole .
+
+av:color a rdf:Property ;
+    rdfs:label "Colour" ;
+    rdfs:comment "The colour the entry's text is drawn in, its caption along with its value: an av:Color role, or a literal \"#RRGGBB\" / \"#AARRGGBB\" string. A mark is the entry's own and nothing inherits it — colouring a line does not colour the terms standing in it, and a sheet that means those names them (av:parentType). Silence leaves the colour the text role carries." ;
+    rdfs:range av:Color .
+
+av:background a rdf:Property ;
+    rdfs:label "Background" ;
+    rdfs:comment "A colour behind the entry, filling the room its geometry gave it: an av:Color role, or a literal \"#RRGGBB\" / \"#AARRGGBB\" string. Silence is no box at all, not a transparent one." ;
+    rdfs:range av:Color .
+
+av:bold a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Bold" ;
+    rdfs:comment "Whether the entry's text is drawn bold: true or false. An emphasis, not a weight — what bold comes to on a face is the theme's to say, and a sheet that wants a particular face wants a text role instead. Stated false it takes the emphasis off text whose role carries one; silence leaves the role's own." ;
+    rdfs:range xsd:boolean .
+
+av:italic a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Italic" ;
+    rdfs:comment "Whether the entry's text is drawn italic: true or false. Stated false it takes the slant off text whose role carries one; silence leaves the role's own." ;
+    rdfs:range xsd:boolean .
+
+av:decoration a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Decoration" ;
+    rdfs:comment "The line drawn on the entry's text: av:underline, av:lineThrough or av:none. The mark and never what it means — why a term is struck through is the sheet's business. Silence leaves the role's own." ;
+    rdfs:range av:TextDecoration .
+
+av:TextDecoration a rdfs:Class, owl:Class ;
+    rdfs:label "Text decoration" ;
+    rdfs:comment "A line drawn on a piece of text, as constants for av:decoration." .
+
+av:underline a av:TextDecoration ;
+    rdfs:label "Underline" ;
+    rdfs:comment "A line under the text." .
+
+av:lineThrough a av:TextDecoration ;
+    rdfs:label "Line through" ;
+    rdfs:comment "A line through the text — struck out." .
+
+av:connector a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Connector" ;
+    rdfs:comment "On an av:Details: whether a connector line is drawn to it from the term it hangs off — the subject-most part its record's Main shows: av:line or av:none. Read nowhere else. Silence is av:none." ;
+    rdfs:range av:Connector .
+
+av:Connector a rdfs:Class, owl:Class ;
+    rdfs:label "Connector" ;
+    rdfs:comment "Whether a connector is drawn, as constants for av:connector." .
+
+av:line a av:Connector ;
+    rdfs:label "Line" ;
+    rdfs:comment "Drawn as a line." .
+
+av:frameColor a rdf:Property ;
+    rdfs:label "Frame colour" ;
+    rdfs:comment "The colour of the outline the av:Record, or the list (av:Source), under the cursor draws round itself: an av:Color role, or a literal \"#RRGGBB\" / \"#AARRGGBB\" string. Stated on the record or the list, and the whole of what says where the cursor is — the rows inside it are drawn as they are drawn anywhere else, and a record that is open draws none for being open. The root list draws none at all: it is the view. Silence is av:primary — the accent." ;
+    rdfs:range av:Color .
+
+av:Color a rdfs:Class, owl:Class ;
+    rdfs:label "Colour" ;
+    rdfs:comment "A colour a sheet may state: one of the theme-role constants, so the sheet keeps its meaning in light and dark themes alike — or, where nothing in the theme is the colour meant, a literal \"#RRGGBB\" or \"#AARRGGBB\" string in its place." .
+
+av:primary a av:Color ;
+    rdfs:label "Primary" ;
+    rdfs:comment "The theme's accent — what marks the attended-to." .
+
+av:secondary a av:Color ;
+    rdfs:label "Secondary" ;
+    rdfs:comment "The theme's second colour, for what stands beside the accent." .
+
+av:tertiary a av:Color ;
+    rdfs:label "Tertiary" ;
+    rdfs:comment "The theme's third colour, a contrast to the other two." .
+
+av:error a av:Color ;
+    rdfs:label "Error" ;
+    rdfs:comment "The theme's colour for what is wrong." .
+
+av:outline a av:Color ;
+    rdfs:label "Outline" ;
+    rdfs:comment "The theme's colour for boundaries and edges." .
+
+av:outlineVariant a av:Color ;
+    rdfs:label "Outline variant" ;
+    rdfs:comment "The quieter outline, for decorative boundaries." .
+
+av:surface a av:Color ;
+    rdfs:label "Surface" ;
+    rdfs:comment "The ground the view itself stands on." .
+
+av:primaryContainer a av:Color ;
+    rdfs:label "Primary container" ;
+    rdfs:comment "A wash of the accent, for something to stand on." .
+
+av:secondaryContainer a av:Color ;
+    rdfs:label "Secondary container" ;
+    rdfs:comment "A wash of the second colour, for something to stand on." .
+
+av:tertiaryContainer a av:Color ;
+    rdfs:label "Tertiary container" ;
+    rdfs:comment "A wash of the third colour, for something to stand on." .
+
+av:errorContainer a av:Color ;
+    rdfs:label "Error container" ;
+    rdfs:comment "A wash of the error colour, for something wrong to stand on." .
+
+av:onSurface a av:Color ;
+    rdfs:label "On surface" ;
+    rdfs:comment "The colour text takes on the plain ground." .
+
+av:onSurfaceVariant a av:Color ;
+    rdfs:label "On surface variant" ;
+    rdfs:comment "The quieter text colour on that ground — what a caption takes." .
+
+av:onPrimaryContainer a av:Color ;
+    rdfs:label "On primary container" ;
+    rdfs:comment "The colour text takes standing on av:primaryContainer." .
+
+av:onSecondaryContainer a av:Color ;
+    rdfs:label "On secondary container" ;
+    rdfs:comment "The colour text takes standing on av:secondaryContainer." .
+
+av:onTertiaryContainer a av:Color ;
+    rdfs:label "On tertiary container" ;
+    rdfs:comment "The colour text takes standing on av:tertiaryContainer." .
+
+av:onErrorContainer a av:Color ;
+    rdfs:label "On error container" ;
+    rdfs:comment "The colour text takes standing on av:errorContainer." .
+
+av:frameWidth a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Frame width" ;
+    rdfs:comment "The thickness of the cursor's outline (av:frameColor), in logical pixels. Silence is 1 — a hairline." ;
+    rdfs:range xsd:decimal .
+
+av:frameCorner a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Frame corner" ;
+    rdfs:comment "How much the cursor's outline (av:frameColor) rounds the corners it turns, in logical pixels. Silence is 1 — barely: the frame is a panel of the view, not a card floating over it." ;
+    rdfs:range xsd:decimal .
+
+av:frameFit a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Frame fit" ;
+    rdfs:comment "How the outline of the record under the cursor takes in the details hanging off its main part: av:hug or av:record. Silence is av:hug. A list's outline is a plain rectangle either way." ;
+    rdfs:range av:FrameFit .
+
+av:FrameFit a rdfs:Class, owl:Class ;
+    rdfs:label "Frame fit" ;
+    rdfs:comment "How the outline of the record under the cursor takes in its details, as constants for av:frameFit." .
+
+av:hug a av:FrameFit ;
+    rdfs:label "Hug" ;
+    rdfs:comment "The outline runs round the record's Main, steps in by the Details' own av:paddingStart, and carries on down the Details." .
+
+av:record a av:FrameFit ;
+    rdfs:label "Record" ;
+    rdfs:comment "The outline gives the step up and spans the record's full width: its main part and its details close one plain rectangle." .
+
+av:item a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Item" ;
+    rdfs:comment "A member of a content list — the av:content of a style's av:set node, or of an av:Layout item: an anonymous node typed by the element it produces or a placement marker — and by any further classes, which the produced entry carries as its types for av:type to find — ordered among its siblings by av:order. Typed as more than one element, it is the plainest of them (Text before Layout before Term before Records before Sources before Main before Details before Source) and the rest are dropped. An element no item produces — av:Pager, av:Frame — is no kind of item: typed as that alone the item is skipped, and beside a kind it is dropped like the rest." ;
+    rdfs:range rdfs:Resource .
+
+av:labelled a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Labelled" ;
+    rdfs:comment "On an av:Term or av:Layout content element: carry the datasource's label as the produced entry's caption — what the built-in sheet does at the root, whose own heading is never drawn. On an av:Text element: the datasource's label is its text — a caption that is a cell of its own, with geometry, for a line to hold among its terms; with no label to carry, it stands nothing. Silence is false." ;
+    rdfs:range xsd:boolean .
+
+av:edited a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Edited" ;
+    rdfs:comment "On an av:Selector: the condition that the entry's term has its editor open (or, false, that it has not). One of the conditions that ask about the moment rather than about the schema, so a style stating it holds of one row and not of its neighbour — which is how a field is given more room while it is being typed into. Only a term is ever edited; every other kind of entry reads as not." ;
+    rdfs:range xsd:boolean .
+
+av:selected a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Selected" ;
+    rdfs:comment "On an av:Selector: the condition that the cursor is on the entry — that it is the record or the list selected in its view, or a part of that one: a record's row, the line and the terms in it, its details; a list's heading, its texts and boxes, its Add (or, false, that it is not). Unlike av:expanded it stops where the next record or list begins: the rows of a selected list are not selected, nor the lists nested in a selected record, each being something the cursor can be on itself — so with av:element av:Record it is exactly the record the cursor's outline is drawn round. While the cursor is on the view as a whole, its root list, nothing is selected in this sense." ;
+    rdfs:range xsd:boolean .
+
+av:expanded a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Expanded" ;
+    rdfs:comment "On an av:Selector: the condition that the entry stands in an expanded rendering — inside a record someone opened, or on a record's own page (or, false, that it does not). True of the expanded record and of everything under it alike, so the condition reaches the contents as readily as the record: pair it with av:element to mean just the one." ;
+    rdfs:range xsd:boolean .
+
+av:text a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Text" ;
+    rdfs:comment "An av:Text content element's text — unless it is av:labelled, when the datasource's label is." ;
+    rdfs:domain av:Text ;
+    rdfs:range xsd:string .
+
+av:id a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Id" ;
+    rdfs:comment "The local part of an av:Layout or av:Text content element's entry id; the datasource id is appended. Optional: unstated, the name is the one the item's own classes imply — av:Layout, av:Line stands as \"line\" — or the element's word, \"layout\" or \"text\", where the item carries no class of its own; a name already taken over that datasource is given the next number after it, so no two entries can collide. State it to pin the identity: entry ids are what widget state is kept by across a re-derivation." ;
+    rdfs:range xsd:string .
+
+# ── Modifiers ─────────────────────────────────────────────────────────────────
+#
+# The looks a datasource may ask for by class: declared among the rdf:types
+# of its ars:DataSource node, in the perspective, and met by the built-in
+# sheet's styles keyed on av:sourceType. A modifier says nothing of its own
+# about how anything looks — its whole meaning is the styles that select on
+# it, which a sheet ranked above the built-in one may restate. Few, and each
+# a coherent look rather than a property in disguise: a property belongs in
+# a style, and a datasource states no look of its own. Any other IRI a
+# datasource declares is a class of the document's own invention, for a
+# sheet of its own to find — like av:type, but declared where the perspective
+# is written rather than put on by a style.
+
+av:Modifier a rdfs:Class, owl:Class ;
+    rdfs:label "Modifier" ;
+    rdfs:comment "A class a datasource may declare among its rdf:types, in the perspective, to ask the built-in sheet for one of its looks; found by av:sourceType. The constants of this class are the looks the built-in sheet knows. Each is a look as a whole, not a property — what a modifier comes to is said in styles, and a sheet ranked above the built-in one may say otherwise." .
+
+# ── The types the built-in sheet stamps ──────────────────────────────────────
+#
+# Classes a content item of the built-in sheet is typed with beside its
+# element, so that the sheet's property styles can find what its content
+# styles planted (av:type, av:parentType). Any sheet may mint its own, in
+# its own namespace; these two are declared here because the built-in
+# sheet names them, and so an editor can offer them.
+
+av:Line a rdfs:Class, owl:Class ;
+    rdfs:label "Line" ;
+    rdfs:comment "The line a record's shown parts stand in — the av:Layout the built-in sheet plants as a record's main part. What makes it a row, and what sizes the fields inside it, are styles keyed on this." .
+
+av:Name a rdfs:Class, owl:Class ;
+    rdfs:label "Name" ;
+    rdfs:comment "The compact look's name cell: the source's label as an av:Text standing in the line where a predicate would, sized like one." .
+
+av:Compact a av:Modifier, rdfs:Class ;
+    rdfs:label "Compact" ;
+    rdfs:comment "The source draws no heading, and each record is one line led by the source's name in a caption cell sized like a predicate's — so a subordinate pinned to one predicate reads as `Label value`, its name where the predicate would have been, the cells of sibling sources lining up. Show the object alone for that shape; whatever parts are shown follow the name." .

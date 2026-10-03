@@ -1,0 +1,751 @@
+# The perspec serialization vocabulary (`ars:`), described in its own terms.
+#
+# This ontology documents every term the app writes or still reads when a
+# perspective definition is serialized — see `lib/controllers/ps_spec_rdf.dart`,
+# which is the authority on how they are used. KEEP THE TWO IN STEP: a term
+# added to, removed from, or repurposed in the serializer changes this file in
+# the same commit (design.md: "The vocabulary ontologies").
+#
+# Defaults are silence throughout the vocabulary: a property at its default is
+# not written, so an older file and a default-valued one read alike.
+#
+# The view vocabulary — stylesheets and view templates, `psv:` — lives in its
+# own ontology beside this one: schema/view.ttl.
+
+@prefix ars:   <https://arspec.org/ars/spec/1/schema#> .
+@prefix av:   <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://arspec.org/ars/spec/1/schema> a owl:Ontology ;
+    rdfs:label "Arspec perspectives" ;
+    rdfs:comment "How a perspective definition is written down: one ars:Perspective over a tree of ars:DataSource nodes, whose filters and values are anonymous nodes." .
+
+# ── The spec node ────────────────────────────────────────────────────────────
+
+ars:Perspective a rdfs:Class, owl:Class ;
+    rdfs:label "Perspective" ;
+    rdfs:comment "A perspective definition, at the IRI <prefix>perspec. The one class for every perspective: what one can be used for (a tab, a lens, a term's page) is read off its root datasource, never off its type; where it is offered is its own statement — ars:inFileTabs, ars:inLensList, ars:opensTerm." .
+
+ars:title a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Title" ;
+    rdfs:comment "The perspective's display name." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:string .
+
+ars:description a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Description" ;
+    rdfs:comment "What the perspective is for, in a sentence — shown under its title in the perspectives screen. Written only when there is one." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:string .
+
+ars:activeByDefault a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Active by default" ;
+    rdfs:comment "Whether the perspective starts shown in files nobody configured. Written only when false." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:boolean .
+
+ars:serviceOf a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Service of" ;
+    rdfs:comment "The perspective this one serves, named by its <prefix>perspec node. A service perspective is an ordinary one except that it is not listed among a file's perspectives to switch on and off, and is edited through the perspective that owns it: it exists for an invocation inside that one to run. Silence is a main perspective, which is what a perspective is unless it says otherwise." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range ars:Perspective .
+
+ars:inFileTabs a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "In the file's tabs" ;
+    rdfs:comment "Whether the perspective's tab stands among a file's — the strip the file's views are switched between. Written only when false: a perspective is a view of a file unless it says otherwise, and one that answers about a row handed to it and about nothing else says so here." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:boolean .
+
+ars:inLensList a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "In the lens list" ;
+    rdfs:comment "Whether the perspective is offered in the lens list — the panel behind an invocation frame's gear, where a reader ticks the perspectives to run about one record's row for as long as the file is open. Written only when false. What an invocation names stands whatever this says; this is about what may be added beside it." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:boolean .
+
+ars:opensTerm a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Opens a term" ;
+    rdfs:comment "Whether the perspective is offered to open a term with — \"Open term with…\" on every term's menu. Picked there, it is run about that one term on a page of its own: on a row holding the term as its subject and nothing else, so only a perspective whose root reads its parameter's subject has anything to show. Written only when true." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range xsd:boolean .
+
+ars:tabVisibility a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Tab visibility" ;
+    rdfs:comment "Read for files written before the three switches above, never written: one word standing for two of them. ars:listOnly and ars:listWithEntries read as ars:inLensList false; ars:lensOnly and ars:lensWithEntries as ars:inFileTabs false. The condition the …WithEntries words carried is not read — a frame now opens on its first tab with entries (ars:firstWithEntries) rather than hiding the ones without." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range rdfs:Resource .
+
+ars:rootDataSource a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Root datasource" ;
+    rdfs:comment "The perspective's root ars:DataSource — the whole configuration, since the view schema is derived from the datasource tree." ;
+    rdfs:domain ars:Perspective ;
+    rdfs:range ars:DataSource .
+
+# ── Datasources ──────────────────────────────────────────────────────────────
+
+ars:DataSource a rdfs:Class, owl:Class ;
+    rdfs:label "Datasource" ;
+    rdfs:comment "One query over the graph, yielding one row per matching triple; datasources form a tree, a child evaluated once per row of its parent. A datasource with an id is the IRI <prefix><id> — the id is the local name." .
+
+ars:label a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Label" ;
+    rdfs:comment "A datasource's display name — a section heading, a row caption — and the name of an action of the perspective's own (ars:CustomAction): on the row's menu, over the bar's button, on its card." ;
+    rdfs:range xsd:string .
+
+ars:subjectVisible a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Subject visible" ;
+    rdfs:comment "Whether this datasource displays the subject of each matched triple. Everything about one displayed field is a property family naming the part first — ars:subjectVisible, ars:subjectEditable, ars:subjectViewMode, ars:subjectOnClick, ars:subjectChoices, and on the Add action\'s node ars:subjectDefaultValue — one single-valued property per part and aspect, so any answer is the object of one known triple. Silence, like false, shows nothing; a datasource may show no part at all, existing for its children or for child-exists filters." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:predicateVisible a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Predicate visible" ;
+    rdfs:comment "Whether this datasource displays the predicate of each matched triple — see ars:subjectVisible for the shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:objectVisible a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Object visible" ;
+    rdfs:comment "Whether this datasource displays the object of each matched triple — see ars:subjectVisible for the shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:subjectEditable a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject editable" ;
+    rdfs:comment "How the subject field's term may be edited: false for never, ars:focused to hold its editor open wherever the rendering is focused on a term (a lens frame's expanded body, a term's page), ars:always to hold it open everywhere. Silence — like true — is editable on request. The three …Editable properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Availability .
+
+ars:predicateEditable a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate editable" ;
+    rdfs:comment "How the predicate field's term may be edited — see ars:subjectEditable for the shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Availability .
+
+ars:objectEditable a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object editable" ;
+    rdfs:comment "How the object field's term may be edited — see ars:subjectEditable for the shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Availability .
+
+ars:subjectOnClick a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject on click" ;
+    rdfs:comment "What a click on the subject field's term does, on a record the cursor is already on — an ars:ClickAction. The first click on a record selects it, whatever this says; the key that opens the selected record (Enter, until the user's key bindings say otherwise) is this click on its leading term. Right-click and long press open the menu whatever this says. Silence is ars:expand for the subject, a record's name being a thing to look into; the three on-click properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:ClickAction .
+
+ars:predicateOnClick a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate on click" ;
+    rdfs:comment "What a click on the predicate field's term does — see ars:subjectOnClick for the shape. Silence is ars:edit: a property is a thing to change." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:ClickAction .
+
+ars:objectOnClick a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object on click" ;
+    rdfs:comment "What a click on the object field's term does — see ars:subjectOnClick for the shape. Silence is ars:edit: a value is a thing to change." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:ClickAction .
+
+ars:subjectViewMode a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject view mode" ;
+    rdfs:comment "What the subject field's cell reads as, said by naming the property whose value stands there in the term's place: rdfs:label, or ars:label. The value is looked up for the term in the file and in every ontology it imports, the term's own file first, whatever the datasource itself reads — what a term is called is most often said by the vocabulary that defines it. Where nothing states one, or states an empty one, the cell is the term after all, and a literal, of which nothing is said, always is. A reading and nothing more: a click edits the term, the rows sort by the term, a search finds the term, and the term is one hover away. Silence is the term itself, its name under its prefix. The three …ViewMode properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:predicateViewMode a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate view mode" ;
+    rdfs:comment "What the predicate field's cell reads as — see ars:subjectViewMode for the shape. A read-only predicate shown by its label is a row's caption taken from the vocabulary, where ars:label on the datasource is one written into the perspective." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:objectViewMode a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object view mode" ;
+    rdfs:comment "What the object field's cell reads as — see ars:subjectViewMode for the shape. A value that is a literal is shown as itself whatever this says." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:subjectChoices a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject choices" ;
+    rdfs:comment "Which terms the subject field's editor offers, in place of the names of the namespace its type cell stands on: a condition tree of the same shape as ars:filter, describing one statement and read as ars:orderQuery is — a reference at distance 0 reads a statement being looked for, ars:bindingDistance 1 the row whose field is being edited, 2 the row above it. One part of every statement it finds is a term on offer: its subject, unless the …ChoicesPart property beside this one names another. Predicate rdf:type and object some class offers the things of that class; object equal to the edited row's subject, the things said of what the row is about, a different list under every row. The query reads the file and everything it imports, whatever the datasource itself reads, so the terms of a vocabulary are found; each is listed as the field's …ViewMode reads it, its name beside it; nodes with no name are never offered. A term picked is not a name typed: a name typed over a term renames the term in every statement it stands in, where a term picked for a predicate or an object has that one statement pointed at it — found in the file or made there, its namespace bound if need be — and the term the statement held left as it was. A subject is its record, and takes the pick as a name typed. Silence offers the namespace's names. The three …Choices properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:predicateChoices a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate choices" ;
+    rdfs:comment "Which terms the predicate field's editor offers — see ars:subjectChoices for the shape. The properties a record of this kind may be given, say: subject any, predicate rdfs:domain, object the record's class." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:objectChoices a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object choices" ;
+    rdfs:comment "Which terms the object field's editor offers — see ars:subjectChoices for the shape. The usual one: the things a property may point at. An offered literal is taken as a literal of its kind." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:subjectChoicesPart a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject choices part" ;
+    rdfs:comment "Which part of each statement ars:subjectChoices finds is a term on offer: rdf:subject, rdf:predicate or rdf:object. Silence is the subject — the things that are something, the things of something, are the subjects of what says so. The three …ChoicesPart properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:predicateChoicesPart a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate choices part" ;
+    rdfs:comment "Which part of each statement ars:predicateChoices finds is a term on offer — see ars:subjectChoicesPart." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:objectChoicesPart a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object choices part" ;
+    rdfs:comment "Which part of each statement ars:objectChoices finds is a term on offer — see ars:subjectChoicesPart. rdf:object offers the values a property has been given elsewhere." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:subjectChoicesOnly a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Subject choices only" ;
+    rdfs:comment "Whether the terms ars:subjectChoices finds are all the subject field takes. Unsaid, the list is an offer and whatever else is typed stands as it would in any editor. True, the editor's type cell is decided by the pick and no longer chosen in, a press on a line of the list commits it, Enter takes the lit line, and a commit of anything the query did not find is refused. A value already standing outside the set is shown as it is and stays until it is changed. Written only when true. The three …ChoicesOnly properties share this shape." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:predicateChoicesOnly a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Predicate choices only" ;
+    rdfs:comment "Whether the terms ars:predicateChoices finds are all the predicate field takes — see ars:subjectChoicesOnly." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:objectChoicesOnly a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Object choices only" ;
+    rdfs:comment "Whether the terms ars:objectChoices finds are all the object field takes — see ars:subjectChoicesOnly." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:objectTypeConstraint a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object type constraint" ;
+    rdfs:comment "What kind of value the object field holds, and only that — an ars:ValueType: ars:term for a term, or a literal's datatype (xsd:string, xsd:decimal, xsd:boolean, xsd:dateTime). What the part's editor is to offer; none holds whatever the graph does. The object alone has one: RDF settles that a subject is an IRI or a blank node and a predicate an IRI, so ars:subjectTypeConstraint and ars:predicateTypeConstraint said nothing that was not already true and are no longer read." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:ValueType .
+
+ars:subjectDefaultValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject default value" ;
+    rdfs:comment "What a new row's subject starts as where the datasource's own filter has not already settled it — an ars:Value, the same operand vocabulary a filter compares against: a constant literal, a constant IRI, a blank node, or a part of an ancestor row. An IRI here is a name to count from: the first of <name>, <name>2, … this document is not already using, since a second record wearing the first one's name is the first record. The three default-value properties share this shape, and stand on the Add action's node, the ars:RowAction that ars:adding names — and on each ars:AddedTriple under its ars:alsoMakes, saying what that further triple is made of; an older spec put them on the datasource itself, and reads on. A part with none is left to the app — auto in the configurator: what the filter pins, or the app's own placeholder." ;
+    rdfs:range ars:Value .
+
+ars:predicateDefaultValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate default value" ;
+    rdfs:comment "What a new row's predicate starts as — see ars:subjectDefaultValue for the shape and the place. Taken as it stands rather than counted up: a predicate names the one relation the section is for, and every row of it asserts the same. Never a blank node, a statement having to say which relation it asserts." ;
+    rdfs:range ars:Value .
+
+ars:objectDefaultValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object default value" ;
+    rdfs:comment "What a new row's object starts as — see ars:subjectDefaultValue for the shape and the place. Taken as it stands, and of the kind ars:objectTypeConstraint asks for where it asks for one — which speaks for the row's own object alone: a further triple's is any value RDF allows." ;
+    rdfs:range ars:Value .
+
+ars:adding a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Adding" ;
+    rdfs:comment "Whether, how visibly and in what place a row may be added to this datasource's list — Add / Insert among the perspective's actions — and what the row is made of. An ars:RowAction node saying what departs from the action's resting state, which is offered, in the action bar and in its own place, every part left to the app and the subordinates' rows made along, and which silence says; a boolean is what an older spec wrote — false for never, true for the row's menu and its key alone — and reads on. What the new row carries is read off the datasource's own filter first, and then off the node's ars:subjectDefaultValue, ars:predicateDefaultValue and ars:objectDefaultValue; what else the addition makes, off ars:alsoMakes; what follows its making, off ars:addsSubordinates." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:RowAction .
+
+ars:deletion a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Deletion" ;
+    rdfs:comment "Whether, how visibly and in what place this datasource's rows may be deleted — Delete among the perspective's actions, said the way ars:adding is: an ars:RowAction node off the resting state, silence for the resting state, the booleans of an older spec read on — and how far a deletion of one of them reaches, ars:deletesSubordinates and ars:deletesOrphans on the node. Never offered, the rows also stay when an enclosing record is deleted." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:RowAction .
+
+ars:copying a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Copying" ;
+    rdfs:comment "Whether, how visibly and in what place an entry of this datasource offers its subordinate rows to the clipboard and takes them back from it — Copy & Paste among the perspective's actions, said the way ars:adding is: an ars:RowAction node off the resting state, silence for the resting state, the booleans of an older spec read on. Never offered, its own rows are also left out when an enclosing entry is copied." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:RowAction .
+
+ars:RowAction a rdfs:Class, owl:Class ;
+    rdfs:label "Row action" ;
+    rdfs:comment "One of a datasource's three actions as the perspective has it — the object of ars:adding, ars:copying or ars:deletion: how far it is offered (ars:offered, ars:inActionBar) and where it stands among the three (ars:order) — and, for ars:adding, what a new row's parts start as (ars:subjectDefaultValue, ars:predicateDefaultValue, ars:objectDefaultValue) and whether the subordinates' rows are made along with it (ars:addsSubordinates); for ars:deletion, how far a deletion reaches (ars:deletesSubordinates, ars:deletesOrphans) — and, for any of them, the face it wears where it is drawn as one (ars:icon or ars:glyph, ars:color, ars:background). Written only where the action departs from its resting state, and then saying only what departs: each property left out rests. What an action is, the app says, the same under every perspective; a perspective says whether, how visibly and in what place, what it is made of, and what it looks like." .
+
+ars:AddedTriple a rdfs:Class, owl:Class ;
+    rdfs:label "Added triple" ;
+    rdfs:comment "One of the triples an addition makes besides the row's own — the object of ars:alsoMakes: what each of its parts is made as (ars:subjectDefaultValue and its two kin, the same properties a row's own parts take), and the triples made under it in turn (its own ars:alsoMakes). A part left unsaid is the app's: for a subject, what the triple above just made — its object where that is a node with no name, and its subject otherwise, so that a triple under one naming a blank node continues it and a triple under one naming a class speaks of the same thing; rdf:type for a predicate; and a node with no name for an object, which is something to say more about and what the triples under it then do." .
+
+ars:offered a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Offered" ;
+    rdfs:comment "Whether the action is offered at all — on the row's menu and by its key. Written only when false: never offered, and nothing else about it worth saying." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:boolean .
+
+ars:inActionBar a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "In action bar" ;
+    rdfs:comment "Whether the action stands in the action bar at the foot of the view as well as on the row's menu and by its key. Written only when false: offered on the menu and by the key alone, out of sight otherwise." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:boolean .
+
+ars:alsoMakes a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Also makes" ;
+    rdfs:comment "A triple this addition makes besides the row's own, on the Add action's node (ars:adding) — an ars:AddedTriple — and on one of those in turn the triples made under it, a record being seldom one statement. Members carry ars:order and are made in it, each after the triple it hangs under: an ancestor reference in one of them counts up this tree before it counts up the rows the addition stands under, so the parent's object in a triple made under another is that other triple's object as it was just made." ;
+    rdfs:range ars:AddedTriple .
+
+ars:action a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Action" ;
+    rdfs:comment "An action of the perspective's own on this datasource's rows, beside the three the app has: an ars:CustomAction, written whole, since silence is no action at all. Members carry ars:order, their place among all the actions — the three included — in the action bar and in the configurator." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:CustomAction .
+
+ars:CustomAction a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:RowAction ;
+    rdfs:label "Custom action" ;
+    rdfs:comment "An action the perspective added of its own — the object of ars:action: a row action like the three (ars:offered, ars:inActionBar, ars:order, its face), with a name (ars:label) and what it does (ars:step, in order), which is the perspective's to say where what the three do is the app's. Each step runs under a triple: the action's own under the row the action is pressed on — the record, or on a list the row the list hangs off — and a query's under each triple it found. Said the Arspec way, in triples rather than in text: SELECT, INSERT, UPDATE and DELETE as a graph has them, and a CALL of another action. A node with no name unless another action calls it (ars:calls), and then <prefix><id>, as a datasource is named." .
+
+ars:step a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Step" ;
+    rdfs:comment "One thing an action of the perspective's own does (ars:CustomAction), or one thing a query step does under each triple it found (ars:SelectStep), or a call under each row the called action made (ars:CallStep): an ars:ActionStep, run in ars:order with the others under the same node." ;
+    rdfs:range ars:ActionStep .
+
+ars:ActionStep a rdfs:Class, owl:Class ;
+    rdfs:label "Action step" ;
+    rdfs:comment "One step of an action of the perspective's own — the object of ars:step: an ars:SelectStep, ars:InsertStep, ars:UpdateStep, ars:DeleteStep or ars:CallStep. Every step runs under a triple, which its values call the parent (a TermValue with bindingDistance 1), an n-th ancestor counting on up from it: the query's own parent, the row above that — the one chain a datasource's filter counts up." .
+
+ars:SelectStep a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:ActionStep, ars:DataSource ;
+    rdfs:label "Select step" ;
+    rdfs:comment "SELECT: a query, run under the triple the step stands under, whose own ars:step members run once under each triple it finds. A datasource in every way that matters — ars:filter says which triples, ars:maxCount how many it takes at the most, in graph order — and ars:minCount is the floor it is: where the query finds fewer, the difference is made the way a datasource's Add makes a row, from what the query pins, and then found. A query for the one statement, a floor of one and an ars:UpdateStep under it is an upsert." .
+
+ars:InsertStep a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:ActionStep, ars:AddedTriple ;
+    rdfs:label "Insert step" ;
+    rdfs:comment "INSERT: a triple made under the triple the step stands under — an ars:AddedTriple with a step's place, its parts said as a row's defaults are (ars:subjectDefaultValue and kin) and the triples made under it under its ars:alsoMakes. A part left unsaid starts as it would under an Add: the node the parent triple made, or its subject; rdf:type; a node with no name." .
+
+ars:UpdateStep a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:ActionStep ;
+    rdfs:label "Update step" ;
+    rdfs:comment "UPDATE: the triple the step stands under, its parts set to ars:subjectNewValue, ars:predicateNewValue and ars:objectNewValue where the step says them, and kept where it does not — or where what it says resolves to nothing. Said under nothing, it changes nothing." .
+
+ars:DeleteStep a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:ActionStep ;
+    rdfs:label "Delete step" ;
+    rdfs:comment "DELETE: the triple the step stands under goes — and with it the blank nodes that leaves nothing pointing at, whole, as a record's deletion takes them, unless ars:deletesOrphans false leaves them standing. Said under nothing, it deletes nothing." .
+
+ars:CallStep a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ars:ActionStep ;
+    rdfs:label "Call step" ;
+    rdfs:comment "CALL: another action of the same datasource (ars:calls), run on what this one was pressed on — the record, or the list — exactly as pressing it there would run it. Its own ars:step members run once under each row the called action made, that row being their parent and the triple the step stands under the one above it, as a query's run under each triple it found; an action that makes no row runs none of them. So a call of the Add with a few steps under it is a row made the usual way — numbered where the datasource keeps an order, placed where an insertion goes, with the rows its subordinates' floors ask for — and then told what is particular to this action. The called action keeps its own conditions: an Add at its ceiling makes nothing, an action never offered (ars:offered false) is not run; one kept out of the action bar (ars:inActionBar false) is called all the same. An action called while it is already running, itself or round through another, is passed over." .
+
+ars:calls a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Calls" ;
+    rdfs:comment "The action an ars:CallStep runs. One of the app's by the word a datasource says it with: ars:adding for Add / Insert, ars:deletion for Delete; ars:copying answers no call, Copy & Paste being the clipboard's to carry out. One of the perspective's own by its node — an ars:CustomAction of the same datasource, written <prefix><id> so that it has a name to be called by. Absent, the step calls nothing." ;
+    rdfs:domain ars:CallStep ;
+    rdfs:range rdfs:Resource .
+
+ars:subjectNewValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject new value" ;
+    rdfs:comment "What an ars:UpdateStep sets the triple's subject to — an ars:Value, the same vocabulary a default is: a constant, or a part of the triple itself (the parent's, bindingDistance 1) or of one above it. Absent, the subject is kept." ;
+    rdfs:domain ars:UpdateStep ;
+    rdfs:range ars:Value .
+
+ars:predicateNewValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate new value" ;
+    rdfs:comment "What an ars:UpdateStep sets the triple's predicate to — see ars:subjectNewValue. Absent, the predicate is kept." ;
+    rdfs:domain ars:UpdateStep ;
+    rdfs:range ars:Value .
+
+ars:objectNewValue a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object new value" ;
+    rdfs:comment "What an ars:UpdateStep sets the triple's object to — see ars:subjectNewValue. Absent, the object is kept." ;
+    rdfs:domain ars:UpdateStep ;
+    rdfs:range ars:Value .
+
+ars:addsSubordinates a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Adds subordinates" ;
+    rdfs:comment "What follows a row's making, on the Add action's node (ars:adding): whether the subordinates' own Add actions are called to make the rows their ars:minCount asks for under the new row — each the way that subordinate's Add makes one, and its subordinates likewise, as far down as each level's Add says — or nothing, the row made bare. Written only when false; silence makes them, as every spec before the property did." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:boolean .
+
+ars:icon a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Icon" ;
+    rdfs:comment "The built-in icon an action wears where it is drawn as a face — its card in the configurator, its button in the action bar — named as the app names it: \"delete_outline\", \"playlist_add\". One of the names the configurator offers; any other, and silence, is the icon the app gives the action. Overruled by ars:glyph where a node says both." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:string .
+
+ars:glyph a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Glyph" ;
+    rdfs:comment "One or two characters drawn where an action's icon would be — a vocabulary's own mark, an arrow, a sign — for an action no icon says the meaning of. Said, it is what is drawn, whatever ars:icon says beside it. Silence is an icon." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:string .
+
+ars:color a rdf:Property ;
+    rdfs:label "Colour" ;
+    rdfs:comment "What an action's icon or glyph is drawn in, said the way a stylesheet says a colour: a theme role as the view vocabulary's own constant (av:primary, av:onPrimaryContainer), or a literal \"#RRGGBB\" / \"#AARRGGBB\". A role keeps its meaning in light and dark alike; a literal is the escape hatch. Silence is the colour the app draws the action in." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range av:Color .
+
+ars:background a rdf:Property ;
+    rdfs:label "Background" ;
+    rdfs:comment "The colour of the square an action's icon or glyph stands on — said as ars:color is, a theme role or a literal. Silence is the app's own." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range av:Color .
+
+ars:deletesSubordinates a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Deletes subordinates" ;
+    rdfs:comment "How far a record's deletion reaches, on the Delete action's node (ars:deletion): whether the rows the record's subordinates show go with it — every subordinate's whose own Delete is offered, and theirs likewise, as far down as each level's Delete says — or the record's own row goes alone and the rest stands. Written only when false; silence takes them, as every spec before the property did. Burn reads past it." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:boolean .
+
+ars:deletesOrphans a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Deletes orphans" ;
+    rdfs:comment "Whether a deletion of this datasource's rows takes the blank nodes it leaves nothing pointing at, whole — everything said of such a node, and the blank nodes that points at in turn — or leaves them standing, on the Delete action's node (ars:deletion); and the same of the one triple an ars:DeleteStep takes. Written only when false; silence takes them, as every spec before the property did. Burn reads past it." ;
+    rdfs:domain ars:RowAction ;
+    rdfs:range xsd:boolean .
+
+ars:loadSourceFile a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Load source file" ;
+    rdfs:comment "Whether the datasource reads the file the perspective is applied to. Written only when false; silence means the source file and nothing else." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:loadImportedFiles a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Load imported files" ;
+    rdfs:comment "Whether the datasource also reads the ontologies the source file imports. Written only when true." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:loadUserData a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Load user data" ;
+    rdfs:comment "Whether the datasource also reads the user's own triples. Written only when true; declared ahead of the store being wired up." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:loadAppDefaults a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Load app defaults" ;
+    rdfs:comment "Whether the datasource also reads the triples the app ships with. Written only when true; declared ahead of the store being wired up." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:boolean .
+
+ars:distinctBy a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Distinct by" ;
+    rdfs:comment "A part deduplication compares, one triple per compared part — a combined mode is its parts, never a minted combination constant. Silence compares nothing and keeps every row." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:sortBy a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Sort by" ;
+    rdfs:comment "The part result rows are ordered by, read as displayed (prefix:name for an IRI) — or ars:order for the numeric sort, whose key the statement ars:orderQuery finds carries. Silence keeps graph order." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range rdf:Property .
+
+ars:orderQuery a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Order query" ;
+    rdfs:comment "Where each row's number is, when ars:sortBy is ars:order: a condition tree of the same shape as ars:filter, describing one statement and read as a subordinate's filter is — a reference at distance 0 reads the statement that carries the number, ars:bindingDistance 1 the row it numbers. The object of the first statement it finds, read as a number, is the row's place: smallest first, rows it finds no number for after. Usually the row's own ordering triple: subject is the row's subject, predicate is an av:order say. Pinned by equality like that, the statement can be written as well as found, which is what lets a row be moved. A condition and no subordinate: it stands no section, its number is not copied with the record's subordinates, and goes when the record does." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:maxCount a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Max count" ;
+    rdfs:comment "The most rows this datasource yields — applied after any ars:sortBy, so it keeps the first rows of the ordering — and the point past which its section offers no Add. A subordinate source meant to fetch one value per parent row — a label, a comment, a display name — is usually given 1, so a term with several candidates still yields a single row. Silence is no ceiling." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:integer .
+
+ars:minCount a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Min count" ;
+    rdfs:comment "The fewest rows a record of the parent datasource is to have of this one: that many are created along with the parent record, seeded the way its own Add seeds them — and their subordinates likewise, down the tree — unless the parent's Add says otherwise (ars:addsSubordinates); and a row of a section standing at this floor is not offered for deletion on its own. Rows seeded identically are one triple, so a floor above 1 wants a seed that differs per row — a blank node, a fresh subject. Silence is 0." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range xsd:integer .
+
+ars:filter a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Filter" ;
+    rdfs:comment "The datasource's condition tree: an ars:FilterCompare, ars:FilterChildExists, or one of the connectives. Which triples are its rows; whether it stands under a given row at all is its other condition, ars:enableIf. A query step of an action (ars:SelectStep) is a datasource, and says which triples it finds the same way." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:enableIf a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Enable if" ;
+    rdfs:comment "The condition under which a datasource stands at all — the second of its two, beside ars:filter: the filter says which triples are its rows, this whether it is asked for any. A query, as ars:orderQuery is: a condition tree of the same shape, read with the row above as its parent — an ars:TermValue with ars:bindingDistance 1 reads the row the datasource hangs off, 2 the row above it — and an ars:TermValue of the current row (distance 0, or none stated) is a part of a statement being looked for, not of a row of the datasource's, none having been asked for yet. It holds where some statement in the datasource's stores satisfies it: subject equal to the parent's object stands the datasource under rows whose object has anything said about it. A condition naming no part of a current row asks nothing of any statement and is asked of the row above alone: the parent's predicate equal to some property, the parent's object ars:isBlank. Where the condition fails the datasource stands nothing under that row: no rows, to an ars:ChildExists check or a record's deletion as much as to the screen; no section, so no heading and no Add; no ars:minCount filled. A filter that finds nothing yields no rows either, but its datasource still stands, heading and Add. On a perspective's root datasource the row above is whatever the perspective is run on — an invocation's parameter triple, the term a page is about, nothing at all over a file — and the condition is the whole perspective's: where it fails its tab is not offered, among an invocation's tabs or a file's; a root repeating its own join here has a tab only where it has something to show. On an ars:Invocation it says whether the invocation runs under the invoking row, the same words its …Parameter properties take for the parent — the only condition one can state, having no rows of its own; where it fails there is no section and no tab row. What an invocation runs answers for its own root's condition besides, read on the parameter. Silence stands it under every row." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:Filter .
+
+ars:child a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Child" ;
+    rdfs:comment "A subordinate datasource, evaluated once per row of this one. Members carry ars:order." ;
+    rdfs:domain ars:DataSource ;
+    rdfs:range ars:DataSource .
+
+ars:order a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Order" ;
+    rdfs:comment "A member's position in its ordered collection — datasource children, filter operands, and a row action's place among the three, in the action bar and in the configurator, which rests at 0 for Adding, 1 for Copying and 2 for Deletion. Also the word ars:sortBy names to ask for the numeric order." ;
+    rdfs:range xsd:integer .
+
+# ── Invocations ──────────────────────────────────────────────────────────────
+
+ars:Invocation a rdfs:Class, owl:Class ;
+    rdfs:label "Invocation" ;
+    rdfs:comment "A subordinate that runs other perspectives instead of querying. What it yields is the rows of the leading perspective's root — evaluated not against the invoking row but against the parameter triple, a row this invocation makes out of that one: ars:subjectParameter, ars:predicateParameter and ars:objectParameter, each a value node reading a part of the invoking row (an ars:TermValue with ars:bindingDistance 1) or of a row above it, or naming a term. A part left unsaid is the invoking row's own, so an invocation that says only which perspective hands the row over whole; a part that comes to nothing — a node with no name, a name nothing wears — leaves the row without it, which the invoked perspective's conditions can test for. Inside an opened record the perspectives it names become a tab row, each run on the same parameter, opening on the first with entries unless ars:firstWithEntries says otherwise. Whether it runs at all under a given row is ars:enableIf, the word any datasource states it by, read in the invoking row's context as any subordinate's is; silence runs it under every row. Stands where a datasource does, as an ars:child; it scans no store, shows no part and has no children of its own, the invoked perspective's being the ones that run." ;
+    rdfs:subClassOf ars:DataSource .
+
+ars:perspective a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Perspective" ;
+    rdfs:comment "The perspective an invocation runs, by its node — <prefix>perspec — wherever that perspective is stored: this file, the topic, the profile, the built-ins. On the invocation itself for one running a single perspective; on each of its ars:Tab nodes for one running several, in their ars:order." ;
+    rdfs:range ars:Perspective .
+
+ars:Tab a rdfs:Class, owl:Class ;
+    rdfs:label "Tab" ;
+    rdfs:comment "One of the perspectives an invocation runs, at its place among them: an anonymous node carrying ars:perspective and ars:order. What ars:tab holds — an invocation names several perspectives this way, since a perspective's own node cannot carry a place that is one invocation's alone. The first is the leader: what the invocation stands as a section, and the tab a frame opens on unless a later one has entries and the first has none." .
+
+ars:tab a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Tab" ;
+    rdfs:comment "One of the perspectives an invocation runs — an ars:Tab, in ars:order. An invocation running one perspective names it with ars:perspective directly instead, which reads as a frame of one tab." ;
+    rdfs:domain ars:Invocation ;
+    rdfs:range ars:Tab .
+
+ars:firstWithEntries a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "First tab with entries" ;
+    rdfs:comment "Whether a frame of this invocation opens on the first of its tabs that has anything to show, rather than on the first tab whatever it holds. Silence is true; written only when false, for an invocation that wants the same tab first every time." ;
+    rdfs:domain ars:Invocation ;
+    rdfs:range xsd:boolean .
+
+ars:subjectParameter a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Subject parameter" ;
+    rdfs:comment "What the invocation's row holds as its subject: a value node — an ars:TermValue reading a part of the invoking row (ars:bindingDistance 1) or of a row above it, or an ars:IriValue naming a term. Silence passes the invoking row's own subject; an ars:BlankValue, or a name nothing in reach wears, passes nothing, and the invoked perspective finds the part absent. The three …Parameter properties share this shape." ;
+    rdfs:domain ars:Invocation ;
+    rdfs:range ars:Value .
+
+ars:predicateParameter a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Predicate parameter" ;
+    rdfs:comment "What the invocation's row holds as its predicate — see ars:subjectParameter." ;
+    rdfs:domain ars:Invocation ;
+    rdfs:range ars:Value .
+
+ars:objectParameter a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Object parameter" ;
+    rdfs:comment "What the invocation's row holds as its object — see ars:subjectParameter." ;
+    rdfs:domain ars:Invocation ;
+    rdfs:range ars:Value .
+
+# ── Filters ──────────────────────────────────────────────────────────────────
+
+ars:Filter a rdfs:Class, owl:Class ;
+    rdfs:label "Filter" ;
+    rdfs:comment "A condition on a row: a comparison, a child-exists test, or a connective over other conditions. What ars:filter and ars:operand hold." .
+
+ars:FilterCompare a rdfs:Class, owl:Class ;
+    rdfs:label "Comparison" ;
+    rdfs:comment "One condition: ars:left, ars:op, and — for a binary operator — ars:value. Unary presence operators test ars:left alone." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:FilterChildExists a rdfs:Class, owl:Class ;
+    rdfs:label "Child exists" ;
+    rdfs:comment "A condition true when the referenced subordinate datasource yields at least one row under the current one." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:FilterAnd a rdfs:Class, owl:Class ;
+    rdfs:label "And" ;
+    rdfs:comment "Every ars:operand must hold." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:FilterOr a rdfs:Class, owl:Class ;
+    rdfs:label "Or" ;
+    rdfs:comment "At least one ars:operand must hold." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:FilterNot a rdfs:Class, owl:Class ;
+    rdfs:label "Not" ;
+    rdfs:comment "Its one ars:operand must not hold." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:left a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Left" ;
+    rdfs:comment "A comparison's left operand — a value node, in practice an ars:TermValue about the row being tested." ;
+    rdfs:domain ars:FilterCompare ;
+    rdfs:range ars:Value .
+
+ars:op a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Operator" ;
+    rdfs:comment "A comparison's operator: an ars:FilterOp constant. Matched by local name, so a hand-written spec naming it as a plain string reads too." ;
+    rdfs:domain ars:FilterCompare ;
+    rdfs:range ars:FilterOp .
+
+ars:value a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Value" ;
+    rdfs:comment "A comparison's right operand — a value node. Absent for the unary operators, which test ars:left alone." ;
+    rdfs:domain ars:FilterCompare ;
+    rdfs:range ars:Value .
+
+ars:operand a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Operand" ;
+    rdfs:comment "A connective's member condition. And/Or members carry ars:order; Not has exactly one." ;
+    rdfs:range ars:Filter .
+
+ars:childDataSourceRef a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Child datasource reference" ;
+    rdfs:comment "The subordinate datasource an ars:FilterChildExists asks about, by its IRI." ;
+    rdfs:domain ars:FilterChildExists ;
+    rdfs:range ars:DataSource .
+
+# ── Values ───────────────────────────────────────────────────────────────────
+
+ars:Value a rdfs:Class, owl:Class ;
+    rdfs:label "Value" ;
+    rdfs:comment "An operand of a comparison, or a parameter of an invocation: a part of some row's triple, a constant literal, or a constant IRI." .
+
+ars:TermValue a rdfs:Class, owl:Class ;
+    rdfs:label "Term value" ;
+    rdfs:comment "A part of some row's triple: ars:role names the part, ars:bindingDistance the row — 0 the current one, 1 its parent, and so on up the evaluation chain." ;
+    rdfs:subClassOf ars:Value .
+
+ars:LiteralValue a rdfs:Class, owl:Class ;
+    rdfs:label "Literal value" ;
+    rdfs:comment "A constant literal, carried in ars:literal." ;
+    rdfs:subClassOf ars:Value .
+
+ars:BlankValue a rdfs:Class, owl:Class ;
+    rdfs:label "Blank value" ;
+    rdfs:comment "A value that is a blank node — the kind, not one node in particular, a blank node's label naming it only within the file that wrote it. Carries nothing; wherever it seeds a new row's part, a node nothing else is wearing is made on the spot." ;
+    rdfs:subClassOf ars:Value .
+
+ars:IriValue a rdfs:Class, owl:Class ;
+    rdfs:label "IRI value" ;
+    rdfs:comment "A constant IRI, carried as ars:nsUri + ars:localName so it survives being read into any graph." ;
+    rdfs:subClassOf ars:Value .
+
+ars:role a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Role" ;
+    rdfs:comment "Which part of the triple: rdf:subject, rdf:predicate or rdf:object — the parts by their W3C reification names. Matched by local name, so a plain string naming the part reads too." ;
+    rdfs:domain ars:TermValue ;
+    rdfs:range rdf:Property .
+
+ars:bindingDistance a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Binding distance" ;
+    rdfs:comment "How many evaluation levels up the referenced row stands: 0 is the current row, 1 its parent." ;
+    rdfs:domain ars:TermValue ;
+    rdfs:range xsd:integer .
+
+ars:literal a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Literal" ;
+    rdfs:comment "A ars:LiteralValue's text." ;
+    rdfs:domain ars:LiteralValue ;
+    rdfs:range xsd:string .
+
+ars:datatype a rdf:Property, owl:ObjectProperty ;
+    rdfs:label "Datatype" ;
+    rdfs:comment "What kind of value ars:literal spells: xsd:decimal, xsd:boolean or xsd:dateTime. Absent for a plain string constant, which matches a literal of any datatype and orders as text." ;
+    rdfs:domain ars:LiteralValue ;
+    rdfs:range rdfs:Datatype .
+
+ars:nsUri a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Namespace URI" ;
+    rdfs:comment "A ars:IriValue's namespace URI." ;
+    rdfs:domain ars:IriValue ;
+    rdfs:range xsd:anyURI .
+
+ars:localName a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Local name" ;
+    rdfs:comment "A ars:IriValue's local name within ars:nsUri." ;
+    rdfs:domain ars:IriValue ;
+    rdfs:range xsd:string .
+
+# ── Constants ────────────────────────────────────────────────────────────────
+# Enum values RDF has no name of its own for live under ars: with the enum's
+# own local name. (The triple parts are not here: they go by rdf:subject,
+# rdf:predicate and rdf:object.)
+
+ars:FilterOp a rdfs:Class, owl:Class ;
+    rdfs:label "Filter operator" ;
+    rdfs:comment "The comparison operators, as constants for ars:op." .
+
+ars:eq a ars:FilterOp ;
+    rdfs:label "Equal" ;
+    rdfs:comment "Equal — term identity: an IRI by name, a literal by lexical form and datatype." .
+
+ars:neq a ars:FilterOp ;
+    rdfs:label "Not equal" ;
+    rdfs:comment "Not equal." .
+
+ars:lt a ars:FilterOp ;
+    rdfs:label "Less than" ;
+    rdfs:comment "Less than, by text." .
+
+ars:gt a ars:FilterOp ;
+    rdfs:label "Greater than" ;
+    rdfs:comment "Greater than, by text." .
+
+ars:lte a ars:FilterOp ;
+    rdfs:label "Less than or equal" ;
+    rdfs:comment "Less than or equal, by text." .
+
+ars:gte a ars:FilterOp ;
+    rdfs:label "Greater than or equal" ;
+    rdfs:comment "Greater than or equal, by text." .
+
+ars:contains a ars:FilterOp ;
+    rdfs:label "Contains" ;
+    rdfs:comment "The left text contains the right." .
+
+ars:startsWith a ars:FilterOp ;
+    rdfs:label "Starts with" ;
+    rdfs:comment "The left text starts with the right." .
+
+ars:regex a ars:FilterOp ;
+    rdfs:label "Regex" ;
+    rdfs:comment "The right operand, as a regular expression, matches the left text." .
+
+ars:typeIs a ars:FilterOp ;
+    rdfs:label "Has type" ;
+    rdfs:comment "The left term is an instance of the class the right operand names: a `left rdf:type right` triple stands in the left term's own graph. The shorthand for \"only subjects typed X\" — one condition on any row, where comparing predicate and object against rdf:type and X matches only the type-declaration row itself." .
+
+ars:exists a ars:FilterOp ;
+    rdfs:label "Exists" ;
+    rdfs:comment "Unary: the left operand resolves to a term at all." .
+
+ars:doesntExist a ars:FilterOp ;
+    rdfs:label "Doesn't exist" ;
+    rdfs:comment "Unary: the left operand resolves to nothing." .
+
+ars:isBlank a ars:FilterOp ;
+    rdfs:label "Is blank" ;
+    rdfs:comment "Unary: the left operand resolves to a node with no name — a blank node, written inline as [ … ]. False where it resolves to a named term, a literal, or nothing at all. What tells a record's anonymous parts, which belong beneath it, from the named terms it points at, each a record of its own: Attributes+ follows the first and stops at the second." .
+
+ars:Availability a rdfs:Class, owl:Class ;
+    rdfs:label "Availability" ;
+    rdfs:comment "What a mode-valued property — the …Editable family — says beyond the booleans: the qualified modes, ars:focused and ars:always. The booleans are the poles: false for never, true for the property's plain case. The three actions ars:adding, ars:deletion and ars:copying took these once, ars:shown among them, and an older spec that says so reads on; they are ars:RowAction nodes now." .
+
+ars:focused a ars:Availability ;
+    rdfs:label "Focused" ;
+    rdfs:comment "Only where the rendering is focused on a term — a lens frame's expanded body, a term's page: an …Editable field's editor is held open there and on request elsewhere. The three actions do not take it (they did once); on them it reads as silence." .
+
+ars:always a ars:Availability ;
+    rdfs:label "Always" ;
+    rdfs:comment "The field's editor is held open everywhere it is shown." .
+
+ars:shown a ars:Availability ;
+    rdfs:label "Shown" ;
+    rdfs:comment "An action offered and shown in the action bar as well as on the row's menu and by its key: the resting state of ars:adding, ars:deletion and ars:copying, which an older spec may spell out and which silence says the same. Never written: what departs from it is said on an ars:RowAction node." .
+
+ars:ClickAction a rdfs:Class, owl:Class ;
+    rdfs:label "Click action" ;
+    rdfs:comment "What a click on a shown field's term does (the …OnClick family): the term's one primary action, taken on the record the cursor is on — a record is selected by the click before it. Where an action has nothing to act on — nothing to expand, no page to open — the editor answers instead, so a click never does nothing at all." .
+
+ars:expand a ars:ClickAction ;
+    rdfs:label "Expand" ;
+    rdfs:comment "Unfolds the term's Lenses in place where a slot stands, collapsing them again when open, and opens it on a page of its own where none does. A literal has nothing to look into and edits instead." .
+
+ars:edit a ars:ClickAction ;
+    rdfs:label "Edit" ;
+    rdfs:comment "Opens the term's editor." .
+
+ars:expandAndEdit a ars:ClickAction ;
+    rdfs:label "Expand and edit" ;
+    rdfs:comment "Both, each where it can: the Lenses unfold and the editor opens. The commit that ends the edit closes the record again — what the one click opened, the one commit closes." .
+
+ars:contextMenu a ars:ClickAction ;
+    rdfs:label "Context menu" ;
+    rdfs:comment "The term's menu, as a right-click would open it." .
+
+ars:openPage a ars:ClickAction ;
+    rdfs:label "Open page" ;
+    rdfs:comment "The term on a page of its own, whatever slot stands here." .
+
+ars:ValueType a rdfs:Class, owl:Class ;
+    rdfs:label "Value type" ;
+    rdfs:comment "What a type-constraint property may name: ars:term, or a literal's datatype — xsd:string, xsd:decimal, xsd:boolean, xsd:dateTime. The datatypes go by their own W3C names; only the term constraint, which RDF does not name, lives here." .
+
+ars:term a ars:ValueType ;
+    rdfs:label "Term" ;
+    rdfs:comment "A term — something with a name, an IRI — and only that. What a type-constraint property says when the field holds no literal." .
+

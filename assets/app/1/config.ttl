@@ -1,0 +1,197 @@
+# The app's own settings vocabulary (`aset:`), described in its own terms.
+#
+# This ontology documents every term the app writes or still reads in its
+# settings documents: a topic's `.arspec` file (`lib/controllers/topic_rdf.dart`,
+# `topic.dart`), the per-file perspective-visibility records
+# (`lib/controllers/ps_settings_rdf.dart`), and the user's own perspective
+# store (`lib/controllers/ps_stores.dart`) — those files are the authority on
+# how the terms are used. KEEP THEM IN STEP: a term added to, removed from, or
+# repurposed in any of them changes this file in the same commit (design.md:
+# "The vocabulary ontologies").
+
+@prefix aset: <https://arspec.org/ars/app/1/config#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+
+<https://arspec.org/ars/app/1/config> a owl:Ontology ;
+    rdfs:comment "What the app records about itself: a topic document's own state, per-file perspective visibility, and the user store's records. Settings documents are ordinary Turtle, open to the same machinery as any ontology." .
+
+# ── The topic document ───────────────────────────────────────────────────────
+
+aset:Topic a rdfs:Class, owl:Class ;
+    rdfs:comment "The one node carrying a topic's own state inside its .arspec document. Everything else in the document is ordinary data the app already understands — aset:FileSettings nodes, ps:Perspective definitions." .
+
+aset:title a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The topic's display name." .
+
+aset:sourceURI a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "A source the topic covers, as an absolute URI held in a string — a file: URI split into namespace and local name would be neither readable nor round-trippable. One triple per source, in document order." .
+
+# ── Per-file perspective visibility ──────────────────────────────────────────
+
+aset:FileSettings a rdfs:Class, owl:Class ;
+    rdfs:comment "One file's perspective-visibility settings: the file's name and the perspecs whose visibility the user overrode for it. Recording deviations rather than the full state keeps a spec nobody decided about on its own default (ps:activeByDefault)." .
+
+aset:fileName a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Which file an aset:FileSettings node is about, by name." .
+
+aset:overriddenPerspec a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "A perspective whose visibility this file overrides — flipped from its own ps:activeByDefault — named by its prefix IRI, a perspec's identity." .
+
+# ── The user's own store ─────────────────────────────────────────────────────
+
+aset:user a owl:NamedIndividual ;
+    rdfs:comment "The user, as the one subject their app-wide records hang off in the user store (perspecs.ttl) — which otherwise holds their saved ps:Perspective definitions." .
+
+aset:deletedPerspec a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "A built-in perspective the user deleted, named by its prefix IRI: aset:user aset:deletedPerspec <prefix>. A suppression record — the bundled asset itself is read-only — kept so no list offers the built-in again." .
+
+# ── The app's preferences ────────────────────────────────────────────────────
+#
+# One aset:preferences node in preferences.ttl (the user directory beside the
+# store above; in the browser, a stored string) — read and written by
+# lib/controllers/preferences_rdf.dart for the AppPreferences facade. What
+# reads as a default is not written, so a fresh install is a bare typed node.
+
+aset:Preferences a rdfs:Class, owl:Class ;
+    rdfs:comment "The class of the one node holding the app's preferences." .
+
+aset:preferences a aset:Preferences, owl:NamedIndividual ;
+    rdfs:comment "The node itself: every preference is a property of this one subject." .
+
+aset:colorTheme a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "The app's color theme: an aset:ColorTheme constant. Unwritten means following the system." .
+
+aset:ColorTheme a rdfs:Class, owl:Class ;
+    rdfs:comment "The color themes the app offers. Each constant is one of AppColorTheme's values, by name." .
+
+aset:system a aset:ColorTheme ; rdfs:comment "Follow the system theme (the unwritten default)." .
+aset:light a aset:ColorTheme ; rdfs:comment "Light." .
+aset:dark a aset:ColorTheme ; rdfs:comment "Dark." .
+aset:deepPurple a aset:ColorTheme ; rdfs:comment "Deep purple accent." .
+aset:blue a aset:ColorTheme ; rdfs:comment "Blue accent." .
+aset:green a aset:ColorTheme ; rdfs:comment "Green accent." .
+aset:orange a aset:ColorTheme ; rdfs:comment "Orange accent." .
+aset:red a aset:ColorTheme ; rdfs:comment "Red accent." .
+
+aset:fontSize a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The editor's base font size in logical pixels. Unwritten means 14." .
+
+aset:autoSave a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Whether edits are written back on their own shortly after the user stops editing. Unwritten means true; the browser fixes it off regardless, having no file to write." .
+
+aset:userProfile a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Where the user's profile lives, as they wrote it: a local path or a URL to the document — an .arspec topic or a plain ontology — whose perspectives and stylesheets (its imports' included) are the user's everywhere. Unwritten means the default location, user.arspec beside this document." .
+
+aset:stylePriority a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "One entry of the style-priority list: a node carrying aset:order and aset:styleOrigin. Most important first by order — of the stylesheets that disagree about a view, the origin ranked higher wins. Unwritten means the default ranking: user, topic, file, app defaults." .
+
+aset:styleOrigin a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "Which place stylesheets come from a priority entry ranks: an aset:StyleOrigin constant." ;
+    rdfs:range aset:StyleOrigin .
+
+aset:StyleOrigin a rdfs:Class, owl:Class ;
+    rdfs:comment "The places a stylesheet can come from, as constants for aset:styleOrigin. Within any one of them, a file's own sheets outrank what it imports, and within a sheet later rules override earlier ones — only the ranking between origins is the user's to arrange." .
+
+aset:userStyles a aset:StyleOrigin ;
+    rdfs:comment "Stylesheets from the user's own preferences." .
+
+aset:topicStyles a aset:StyleOrigin ;
+    rdfs:comment "Stylesheets the open topic carries." .
+
+aset:fileStyles a aset:StyleOrigin ;
+    rdfs:comment "Stylesheets written in the ontology file itself." .
+
+aset:defaultStyles a aset:StyleOrigin ;
+    rdfs:comment "The stylesheet the app ships with." .
+
+aset:aiProvider a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "Which AI service the assistant talks to: an aset:AiProvider constant. Unwritten means the assistant is not configured. The service's API key is deliberately NOT in this document — preferences are exportable Turtle, and the key lives in the platform keystore instead." ;
+    rdfs:range aset:AiProvider .
+
+aset:AiProvider a rdfs:Class, owl:Class ;
+    rdfs:comment "The AI services the assistant can talk to, as constants for aset:aiProvider. Each is one of AiProviderKind's values, by name (ai/provider.dart); all speak the OpenAI-compatible chat protocol and differ in their default base URL and model." .
+
+aset:anthropic a aset:AiProvider ; rdfs:comment "Anthropic (Claude) — the one provider speaking its own Messages API dialect rather than the OpenAI-compatible one." .
+aset:openAi a aset:AiProvider ; rdfs:comment "OpenAI." .
+aset:xAi a aset:AiProvider ; rdfs:comment "xAI (Grok)." .
+aset:mistral a aset:AiProvider ; rdfs:comment "Mistral." .
+aset:ollama a aset:AiProvider ; rdfs:comment "A local Ollama server — no account, no key." .
+aset:custom a aset:AiProvider ; rdfs:comment "Any other OpenAI-compatible server, its base URL the user's to give." .
+
+aset:aiBaseURL a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The provider's API address where it differs from the chosen provider's default — the OpenAI-compatible /v1 endpoint, as a string. Unwritten means the provider's own." .
+
+aset:aiModel a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The model the assistant asks for where it differs from the chosen provider's default." .
+
+aset:aiPaneWidth a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "How wide the assistant's chat pane stands, in logical pixels — dragged by its resizer. Unwritten means the default width." .
+
+aset:mcpServer a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Whether Arspec serves its assistant tools to the user's own AI chats over MCP, listening on localhost (ai/mcp_server.dart). Unwritten means off. The access token is deliberately NOT in this document, for the API key's reason: it lives in the platform keystore." .
+
+aset:mcpServerPort a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The localhost port the MCP server listens on where it differs from the default." .
+
+aset:reportBugButton a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Whether the workspace frame offers Report a bug, over Preferences at its foot. Unwritten means true. It governs the offer alone: a report is only ever sent from the dialog that button opens, by the user pressing Send, and holds what they ticked there." .
+
+aset:keyBinding a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "One command's keys, where the user changed them: a node carrying aset:keyCommand and whichever of aset:primaryKey and aset:alternateKey differ from the platform's defaults. Unwritten — for a command, or for one of its two keys — means the default, which is the platform's own convention and so not the same on a Mac as elsewhere; a document carried between the two takes its changes along and leaves the rest to each." .
+
+aset:keyCommand a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "Which command an aset:keyBinding entry is about: an aset:KeyCommand constant." ;
+    rdfs:range aset:KeyCommand .
+
+aset:primaryKey a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The command's main key, as text: the modifiers held, in the order Ctrl, Alt, Shift, Meta, then the key, joined by + (\"Ctrl+Shift+ArrowUp\"). A key is named by the character on it (\"W\", \"[\") or, having none, by its W3C name (\"ArrowUp\", \"Enter\", \"F3\"); Meta is the Command key on a Mac and the Windows key elsewhere. The text \"none\" is a key taken away on purpose, as against one left at its default." .
+
+aset:alternateKey a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The command's second key, spelled as aset:primaryKey is: either is pressed for the command." .
+
+aset:KeyCommand a rdfs:Class, owl:Class ;
+    rdfs:comment "What a key can be given to, as constants for aset:keyCommand. Each is one of KeyCommand's values, by name (controllers/key_bindings.dart), which is also where the defaults are and where each command listens: two commands may share a key where they never listen at once — Enter opens the selected record in a view, and applies the edit in an editor." .
+
+aset:cursorPrevious a aset:KeyCommand ; rdfs:comment "Move the cursor to the record or list before the selected one — out to what holds it, from the first." .
+aset:cursorNext a aset:KeyCommand ; rdfs:comment "Move the cursor to the one after — on past the end of the list, from the last." .
+aset:cursorOut a aset:KeyCommand ; rdfs:comment "Move the cursor out, to the list or record that holds the selected one." .
+aset:cursorIn a aset:KeyCommand ; rdfs:comment "Move the cursor in, to the first record or list inside the selected one." .
+aset:activateRecord a aset:KeyCommand ; rdfs:comment "Do what a click on the selected record does, as its perspective configures it (ars:subjectOnClick and kin)." .
+aset:moveRecordUp a aset:KeyCommand ; rdfs:comment "Move the selected record one place up its list, where the list is numerically ordered." .
+aset:moveRecordDown a aset:KeyCommand ; rdfs:comment "Move the selected record one place down its list." .
+aset:addRow a aset:KeyCommand ; rdfs:comment "Add a row: above the selected record where its list keeps an order of its own, into its list otherwise; at the end of the selected list." .
+aset:deleteRow a aset:KeyCommand ; rdfs:comment "Delete the selected record with everything under it. A list is not deleted by a key, only from its menu." .
+aset:copyRows a aset:KeyCommand ; rdfs:comment "Copy the selected record with everything under it, or every row of the selected list, to the clipboard." .
+aset:pasteRows a aset:KeyCommand ; rdfs:comment "Paste rows from the clipboard into the selected list, or into the selected record’s list." .
+aset:toggleExpansion a aset:KeyCommand ; rdfs:comment "Open the selected record in place, or shut it again." .
+aset:openExpanded a aset:KeyCommand ; rdfs:comment "Open the selected record on a page of its own." .
+aset:commitEdit a aset:KeyCommand ; rdfs:comment "Apply the edit of a one-line value." .
+aset:commitMultilineEdit a aset:KeyCommand ; rdfs:comment "Apply the edit of a text of several lines, where Enter starts a new line; it applies a one-line value as well." .
+aset:cancelEdit a aset:KeyCommand ; rdfs:comment "Abandon the edit and put back what was there." .
+aset:undo a aset:KeyCommand ; rdfs:comment "Take back the last change to the file." .
+aset:redo a aset:KeyCommand ; rdfs:comment "Make again the change that was taken back." .
+aset:goBack a aset:KeyCommand ; rdfs:comment "Go back one place in the workspace’s history." .
+aset:goForward a aset:KeyCommand ; rdfs:comment "Return to where going back left from." .
+aset:searchNext a aset:KeyCommand ; rdfs:comment "Step the search to the next match." .
+aset:searchPrevious a aset:KeyCommand ; rdfs:comment "Step the search to the match before." .
+aset:actionButton1 a aset:KeyCommand ; rdfs:comment "Press the first button of the action bar, whichever action stands there." .
+aset:actionButton2 a aset:KeyCommand ; rdfs:comment "Press the second button of the action bar, whichever action stands there." .
+aset:actionButton3 a aset:KeyCommand ; rdfs:comment "Press the third button of the action bar, whichever action stands there." .
+aset:actionButton4 a aset:KeyCommand ; rdfs:comment "Press the fourth button of the action bar, whichever action stands there." .
+aset:actionButton5 a aset:KeyCommand ; rdfs:comment "Press the fifth button of the action bar, whichever action stands there." .
+aset:actionButton6 a aset:KeyCommand ; rdfs:comment "Press the sixth button of the action bar, whichever action stands there." .
+aset:actionButton7 a aset:KeyCommand ; rdfs:comment "Press the seventh button of the action bar, whichever action stands there." .
+aset:actionButton8 a aset:KeyCommand ; rdfs:comment "Press the eighth button of the action bar, whichever action stands there." .
+aset:actionButton9 a aset:KeyCommand ; rdfs:comment "Press the ninth button of the action bar, whichever action stands there." .
+aset:actionButton10 a aset:KeyCommand ; rdfs:comment "Press the tenth button of the action bar, whichever action stands there." .
+
+aset:recentTopic a rdf:Property, owl:ObjectProperty ;
+    rdfs:comment "One entry of the recently-opened-topics list: a node carrying aset:order and aset:topicURI. Newest first by order." .
+
+aset:order a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "Where a member stands in its list, ascending from 0 — written out because the Turtle reader keeps no document order." .
+
+aset:topicURI a rdf:Property, owl:DatatypeProperty ;
+    rdfs:comment "The topic document a recent entry points back to, as the URI it was opened from." .

@@ -1,0 +1,303 @@
+@prefix : <https://arspec.org/ars/spec/1/instruct#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix spec: <https://arspec.org/ars/spec/1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+spec:instruct a owl:Ontology ;
+    rdfs:comment "An abstract machine in two halves: state, declared as frames of slots under a contract, and instructions, which move that state from one phase to the next and name nothing but slots." ;
+    rdfs:label "instruct" .
+
+:Block a owl:Class ;
+    rdfs:comment "Instructions in order: a function's body, a branch of an If, the turn of a While. A node with no name, part of what it hangs off." ;
+    rdfs:label "Block" .
+
+:Call a owl:Class ;
+    rdfs:comment "Runs function on the instance the slot :on holds \u2014 or, :on left unsaid, on the running instance itself, which is what a method calling its neighbour is. Nothing is passed and nothing returned: the instance was filled before and is read after." ;
+    rdfs:label "Call" ;
+    rdfs:subClassOf :Instruction .
+
+:Compute a owl:Class ;
+    rdfs:comment "target := left op right." ;
+    rdfs:label "Compute" ;
+    rdfs:subClassOf :Instruction .
+
+:Console a :Frame ;
+    rdfs:comment "The terminal. The machine makes the one instance; whatever is to speak stands within it." ;
+    rdfs:label "Console" .
+
+:Frame a owl:Class ;
+    rdfs:comment "A piece of state, declared: a named set of slots. It belongs to no function and no module until something says so \u2014 a function takes one, a slot holds one, another frame stands within one. An instance is made by a Make instruction into a slot that owns it, lives as long as that slot does, and is in reach of whatever runs on it or within it." ;
+    rdfs:label "Frame" .
+
+:Function a owl:Class ;
+    rdfs:comment "A run of instructions over state. It takes one frame, runs on an instance of it, and reaches that instance's slots and those of the frames it stands within \u2014 nothing else. It has no parameters and no locals of its own: what it is given, what it works in and what it leaves behind are slots of the frame, which was made before the call and stands after it. Several functions taking one frame are what a class with its methods is." ;
+    rdfs:label "Function" .
+
+:Get a owl:Class ;
+    rdfs:comment "target := from.slot \u2014 a slot of the instance another slot holds. How a caller reads what a call left behind." ;
+    rdfs:label "Get" ;
+    rdfs:subClassOf :Instruction .
+
+:If a owl:Class ;
+    rdfs:comment "Runs :then where left op right holds, and :else, if there is one, where it does not." ;
+    rdfs:label "If" ;
+    rdfs:subClassOf :Instruction .
+
+:Instruction a owl:Class ;
+    rdfs:comment "One transition of state. Flat: every operand is a slot or a constant, never another instruction, so an instruction reads as one row. A slot named is the one in the running instance, or in the instance of its frame up the context (:within) \u2014 there is exactly one, which is what makes naming it enough." ;
+    rdfs:label "Instruction" .
+
+:Make a owl:Class ;
+    rdfs:comment "target := a new instance of frame, its slots as they start (:initially). The target is a slot that owns what it holds; what it held before goes." ;
+    rdfs:label "Make" ;
+    rdfs:subClassOf :Instruction .
+
+:Native a owl:Class ;
+    rdfs:comment "A function the machine provides: it takes a frame as any function does, and has no body to read." ;
+    rdfs:label "Native function" ;
+    rdfs:subClassOf :Function .
+
+:Operator a owl:Class ;
+    rdfs:comment "What stands between two operands: an arithmetic operator for a Compute, a comparison for a test, either for either." ;
+    rdfs:label "Operator" .
+
+:Put a owl:Class ;
+    rdfs:comment "into.slot := value \u2014 a slot of the instance another slot holds. How a caller fills a frame before calling on it, and how anyone else does, before or after." ;
+    rdfs:label "Put" ;
+    rdfs:subClassOf :Instruction .
+
+:Return a owl:Class ;
+    rdfs:comment "Ends the function. It carries nothing: a result is a slot, written before." ;
+    rdfs:label "Return" ;
+    rdfs:subClassOf :Instruction .
+
+:Say a :Frame ;
+    rdfs:comment "One line for the console." ;
+    rdfs:label "Say" ;
+    :within :Console .
+
+:Say_text a :Slot ;
+    rdfs:label "text" ;
+    :holds xsd:string ;
+    :of :Say ;
+    :order 0 .
+
+:Set a owl:Class ;
+    rdfs:comment "target := value." ;
+    rdfs:label "Set" ;
+    rdfs:subClassOf :Instruction .
+
+:Slot a owl:Class ;
+    rdfs:comment "One named place in a frame, holding one value: a plain one, or an instance of a frame. What a variable, a parameter, a result and a field all are \u2014 the difference between them is who writes the slot and when, which is the contract's to say and not the slot's kind." ;
+    rdfs:label "Slot" .
+
+:While a owl:Class ;
+    rdfs:comment "Runs :do for as long as left op right holds, tested before each turn." ;
+    rdfs:label "While" ;
+    rdfs:subClassOf :Instruction .
+
+:add a :Operator ;
+    rdfs:comment "Sum." ;
+    rdfs:label "+" .
+
+:and a :Operator ;
+    rdfs:comment "Both hold." ;
+    rdfs:label "and" .
+
+:body a owl:ObjectProperty ;
+    rdfs:comment "The block a function runs." ;
+    rdfs:domain :Function ;
+    rdfs:label "Body" ;
+    rdfs:range :Block .
+
+:concat a :Operator ;
+    rdfs:comment "The left text followed by the right." ;
+    rdfs:label "++" .
+
+:div a :Operator ;
+    rdfs:comment "Quotient, whole for whole numbers." ;
+    rdfs:label "\u00F7" .
+
+:do a owl:ObjectProperty ;
+    rdfs:comment "The block a While runs each turn." ;
+    rdfs:domain :While ;
+    rdfs:label "Do" ;
+    rdfs:range :Block .
+
+:else a owl:ObjectProperty ;
+    rdfs:comment "The block an If runs where its test fails." ;
+    rdfs:domain :If ;
+    rdfs:label "Else" ;
+    rdfs:range :Block .
+
+:eq a :Operator ;
+    rdfs:comment "Equal." ;
+    rdfs:label "=" .
+
+:frame a owl:ObjectProperty ;
+    rdfs:comment "The frame a Make makes an instance of." ;
+    rdfs:domain :Make ;
+    rdfs:label "Frame" ;
+    rdfs:range :Frame .
+
+:from a owl:ObjectProperty ;
+    rdfs:comment "The slot holding the instance a Get reads a slot of." ;
+    rdfs:domain :Get ;
+    rdfs:label "From" ;
+    rdfs:range :Slot .
+
+:function a owl:ObjectProperty ;
+    rdfs:comment "The function a Call runs." ;
+    rdfs:domain :Call ;
+    rdfs:label "Function" ;
+    rdfs:range :Function .
+
+:gt a :Operator ;
+    rdfs:comment "Greater than." ;
+    rdfs:label ">" .
+
+:gte a :Operator ;
+    rdfs:comment "Greater than or equal." ;
+    rdfs:label "\u2265" .
+
+:holds a owl:ObjectProperty ;
+    rdfs:comment "What a slot holds: a datatype (xsd:integer, xsd:string, xsd:boolean) for a plain value, or a frame for an instance of it." ;
+    rdfs:domain :Slot ;
+    rdfs:label "Holds" ;
+    rdfs:range rdfs:Resource .
+
+:initially a owl:DatatypeProperty ;
+    rdfs:comment "What a slot holds when its frame is made. Silence is nothing, until something is written." ;
+    rdfs:domain :Slot ;
+    rdfs:label "Initially" ;
+    rdfs:range rdfs:Literal .
+
+:into a owl:ObjectProperty ;
+    rdfs:comment "The slot holding the instance a Put writes a slot of." ;
+    rdfs:domain :Put ;
+    rdfs:label "Into" ;
+    rdfs:range :Slot .
+
+:left a rdf:Property ;
+    rdfs:comment "The first operand of a Compute, an If or a While: a slot, read, or a constant." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Left" ;
+    rdfs:range rdfs:Resource .
+
+:lt a :Operator ;
+    rdfs:comment "Less than." ;
+    rdfs:label "<" .
+
+:lte a :Operator ;
+    rdfs:comment "Less than or equal." ;
+    rdfs:label "\u2264" .
+
+:mod a :Operator ;
+    rdfs:comment "Remainder." ;
+    rdfs:label "mod" .
+
+:mul a :Operator ;
+    rdfs:comment "Product." ;
+    rdfs:label "\u00D7" .
+
+:neq a :Operator ;
+    rdfs:comment "Not equal." ;
+    rdfs:label "\u2260" .
+
+:of a owl:ObjectProperty ;
+    rdfs:comment "The frame a slot is a place in. Said from the slot, the way a property names its domain: a slot is in exactly one frame. The slots of one frame carry :order." ;
+    rdfs:domain :Slot ;
+    rdfs:label "Of" ;
+    rdfs:range :Frame .
+
+:on a owl:ObjectProperty ;
+    rdfs:comment "The slot holding the instance a Call runs its function on. Silence is the running instance." ;
+    rdfs:domain :Call ;
+    rdfs:label "On" ;
+    rdfs:range :Slot .
+
+:op a owl:ObjectProperty ;
+    rdfs:comment "What a Compute works out, or an If or a While tests." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Operator" ;
+    rdfs:range :Operator .
+
+:or a :Operator ;
+    rdfs:comment "Either holds." ;
+    rdfs:label "or" .
+
+:order a owl:DatatypeProperty ;
+    rdfs:comment "A member's place among its siblings: an instruction's in its block, a slot's in its frame. Smallest first." ;
+    rdfs:label "Order" ;
+    rdfs:range xsd:integer .
+
+:owns a owl:DatatypeProperty ;
+    rdfs:comment "Whether the instance a slot holds is the slot's own: made into it, and gone when the slot's frame goes or the slot is made into again. Silence is a reference to an instance some other slot owns. There is no collector: every instance has one owning slot, and the chain of owners is its lifetime." ;
+    rdfs:domain :Slot ;
+    rdfs:label "Owns" ;
+    rdfs:range xsd:boolean .
+
+:right a rdf:Property ;
+    rdfs:comment "The second operand: a slot, read, or a constant." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Right" ;
+    rdfs:range rdfs:Resource .
+
+:say a :Function, :Native ;
+    rdfs:comment "Writes the line it is called on to the console." ;
+    rdfs:label "say" ;
+    :takes :Say .
+
+:slot a owl:ObjectProperty ;
+    rdfs:comment "The slot of the other instance a Put writes or a Get reads." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Slot" ;
+    rdfs:range :Slot .
+
+:step a owl:ObjectProperty ;
+    rdfs:comment "One instruction of a block. Members carry :order and run in it." ;
+    rdfs:domain :Block ;
+    rdfs:label "Step" ;
+    rdfs:range :Instruction .
+
+:sub a :Operator ;
+    rdfs:comment "Difference." ;
+    rdfs:label "\u2212" .
+
+:takes a owl:ObjectProperty ;
+    rdfs:comment "The frame a function runs on an instance of." ;
+    rdfs:domain :Function ;
+    rdfs:label "Takes" ;
+    rdfs:range :Frame .
+
+:target a owl:ObjectProperty ;
+    rdfs:comment "The slot an instruction writes." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Target" ;
+    rdfs:range :Slot .
+
+:then a owl:ObjectProperty ;
+    rdfs:comment "The block an If runs where its test holds." ;
+    rdfs:domain :If ;
+    rdfs:label "Then" ;
+    rdfs:range :Block .
+
+:value a rdf:Property ;
+    rdfs:comment "What a Set or a Put writes: a slot, read, or a constant." ;
+    rdfs:domain :Instruction ;
+    rdfs:label "Value" ;
+    rdfs:range rdfs:Resource .
+
+:within a owl:ObjectProperty ;
+    rdfs:comment "The context a frame's instances stand in: every instance has exactly one instance of that frame up its chain of owners, and its slots are in reach of whatever runs on the instance below. What a global is \u2014 a slot of the frame nothing stands above \u2014 and what a request-wide variable is \u2014 a slot of the request's frame \u2014 without either being a special kind of variable. It is also what a capability is: a frame that stands within the console can speak, and one that does not cannot be made to. Silence asks for nothing above." ;
+    rdfs:domain :Frame ;
+    rdfs:label "Within" ;
+    rdfs:range :Frame .
+
+:writer a owl:ObjectProperty ;
+    rdfs:comment "A function that may write the slot. Silence lets any function in reach of it; said, only the ones named. In reach is the context's to say (:within); this narrows it." ;
+    rdfs:domain :Slot ;
+    rdfs:label "Writer" ;
+    rdfs:range :Function .

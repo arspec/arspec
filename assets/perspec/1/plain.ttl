@@ -1,0 +1,21 @@
+@prefix n0: <https://arspec.org/ars/perspec/1/plain#> .
+@prefix ars: <https://arspec.org/ars/spec/1/schema#> .
+
+# Every triple in the file, unsorted and ungrouped. Useful for looking at what
+# a file literally contains, rarely what you want open — so it ships switched
+# off and waits, one checkbox away, in the perspectives screen.
+#
+# It is about the file, never about a term: its root shows all three parts of
+# a triple, so no focus term could stand in for one of them. ars:inLensList
+# false says so rather than leaving it to be worked out.
+n0:perspec a ars:Perspective ;
+    ars:activeByDefault false ;
+    ars:inLensList false ;
+    ars:title "Plain" ;
+    ars:description "Every triple as it stands, one row each — the file exactly as written." ;
+    ars:rootDataSource n0:ds_triples .
+
+n0:ds_triples a ars:DataSource ;
+    ars:subjectVisible true ;
+    ars:predicateVisible true ;
+    ars:objectVisible true .

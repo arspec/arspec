@@ -1,0 +1,19 @@
+# The public part of Arspec: enough of a package for lib/models/ to be read,
+# analysed and tested as it is in the app. Not published to pub.dev.
+name: arspec
+description: "See, shape, and edit RDF ontologies through views you define yourself."
+publish_to: 'none'
+version: 0.5.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  rdf_core: ^0.9.19
+  rdf_xml: ^0.4.6
+  xml: ^6.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  path: ^1.9.0

@@ -1,0 +1,74 @@
+@prefix : <http://arspec.org/demo/example1#> .
+@prefix ars: <http://arspec.org/> .
+@prefix av: <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix p: <http://arspec.org/programming-core#> .
+@prefix pe1: <http://arspec.org/programming-example1#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+:nextInstruction a owl:AnnotationProperty, [] .
+
+ars:example1 a owl:Ontology ;
+    rdfs:comment "An example program based on  \"programming-core.ttl\"Ontology." ;
+    owl:imports ars:programming-core .
+
+p:firstInstruction a owl:AnnotationProperty .
+
+pe1:main a p:Function, owl:NamedIndividual ;
+    p:functionBody pe1:main-Function-InstructionList ;
+    p:functionFullName "global:main" .
+
+pe1:main-Function-Constant1 a p:ConstantValueInstruction, owl:NamedIndividual ;
+    p:constantValue "World" .
+
+pe1:main-Function-Data a p:StructType, owl:NamedIndividual ;
+    p:firstStructField pe1:main-Function-DataField-hello .
+
+pe1:main-Function-DataField-hello a p:DataField, owl:NamedIndividual ;
+    p:dataFieldName "hello" .
+
+pe1:main-Function-FieldReference1 a p:DataFieldReferenceInstruction, owl:NamedIndividual ;
+    p:dataFieldReference pe1:main-Function-DataField-hello .
+
+pe1:main-Function-InstructionList a p:StatementList, owl:NamedIndividual ;
+    p:firstStatement pe1:main-function-statement1 ;
+    p:scopeData pe1:main-Function-Data .
+
+pe1:main-Function-InvokeInstruction1 a p:InvokeInstruction, owl:NamedIndividual ;
+    p:firstArgument pe1:main-Function-FieldReference1 ;
+    p:invocationTarget pe1:sayHello .
+
+pe1:main-Function-ReturnInstruction1 a p:ReturnStatement, owl:NamedIndividual .
+
+pe1:main-Function-SetDataInstruction1 a p:SetDataInstruction, owl:NamedIndividual ;
+    p:setDataTarget pe1:main-Function-DataField-hello ;
+    p:setDataValue pe1:main-Function-Constant1 .
+
+pe1:main-function-statement1 a p:InstructionStatement, owl:NamedIndividual ;
+    p:nextStatement pe1:main-function-statement2 ;
+    p:statementInstruction pe1:main-Function-SetDataInstruction1 .
+
+pe1:main-function-statement2 a p:InstructionStatement, owl:NamedIndividual ;
+    p:nextStatement pe1:main-Function-ReturnInstruction1 ;
+    p:statementInstruction pe1:main-Function-InvokeInstruction1 .
+
+pe1:sayHello a p:Function, owl:NamedIndividual ;
+    p:functionBody pe1:sayHello-Function-InstructionList ;
+    p:functionFullName "global:sayHello" .
+
+pe1:sayHello-Function-InstructionList a p:StatementList, owl:NamedIndividual .
+
+pe1:sayHello-Function-Parameter1 a p:DataField, owl:NamedIndividual ;
+    p:dataFieldName "whom" .
+
+pe1:sayHello-Function-Parameters a p:StructType, owl:NamedIndividual ;
+    p:firstStructField pe1:sayHello-Function-Parameter1 .
+
+[] a av:Style ;
+    :inner1 [ :inner2 [] ] ;
+    :inner3 [] ;
+    rdfs:label "" ;
+    av:order 0 ;
+    av:select [] ;
+    av:set [] .

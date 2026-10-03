@@ -1,0 +1,199 @@
+# The built-in view: one stylesheet saying what stands on every
+# perspective's spine of sources and records (the content fields) and how it
+# looks (the property styles). A file is a sheet: the av:Style nodes below
+# are the sheet, and the owl:Ontology header names it. Read at startup
+# (lib/controllers/ps_builtins.dart) and installed over the Dart twin —
+# psDefaultSheet in lib/controllers/ps_sheet.dart — which says the same in
+# code and stands in when this file cannot be read; a test keeps the pair in
+# step. The vocabulary is assets/spec/1/schema/view.ttl; the meaning of
+# every layout property is docs/layout_algebra.md; the model is
+# docs/structure_as_rules.md.
+
+@prefix av: <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://arspec.org/ars/view/1/default> a owl:Ontology ;
+    rdfs:label "default" ;
+    rdfs:comment "The stylesheet the app ships with — what every perspective resolves against until a topic's, a file's own, or the user's styles say otherwise." .
+
+# ── The styles ───────────────────────────────────────────────────────────────
+#
+# This sheet stands at the app-defaults origin, under every other sheet in
+# the default ranking: any style of the user's preferences, the topic's
+# sheets, or the ontology document's own outranks any style here, whatever
+# its selector says — a selector gates its style, it never ranks it. Within
+# one sheet only the order decides: later styles override earlier ones, so
+# this file reads top to bottom, refinements after the base. What an entry
+# states itself wins over every style; what no style says is left to the
+# defaults: a stack with related gaps, headed by its label, stretched
+# across.
+
+# ── geometry ──
+
+[ a av:Style ] rdfs:label "a line is a row" ;
+    av:order 0 ;
+    av:select [ a av:Selector ; av:type av:Line ] ;
+    av:set [ av:direction av:row ] .
+
+[ a av:Style ] rdfs:label "the fields of a line share it" ;
+    av:order 1 ;
+    av:select [ a av:Selector ; av:element av:Term ; av:parentType av:Line ] ;
+    av:set [ av:width "1fr" ] .
+
+[ a av:Style ] rdfs:label "a predicate in a line keeps to its cap" ;
+    av:order 2 ;
+    av:select [ a av:Selector ; av:element av:Term ; av:role rdf:predicate ; av:parentType av:Line ] ;
+    av:set [ av:maxWidth "150px" ] .    
+
+[ a av:Style ] rdfs:label "a predicate being typed into gets room" ;
+    av:order 3 ;
+    av:select [ a av:Selector ; av:element av:Term ; av:role rdf:predicate ; av:edited true ] ;
+    av:set [ av:maxWidth "320px" ] .
+
+# The indent. A record's Details is a container like any other, and how far
+# it stands in from the row is its own start padding: one step, stated here
+# so the inset has a style to point at, and none where the record shows no
+# part — with nothing above them, the details stand where the row would have.
+
+[ a av:Style ] rdfs:label "the details stand in under the row" ;
+    av:order 4 ;
+    av:select [ a av:Selector ; av:element av:Details ] ;
+    av:set [ av:paddingStart "indent" ] .
+
+[ a av:Style ] rdfs:label "details under nothing stand flush" ;
+    av:order 5 ;
+    av:select [ a av:Selector ; av:element av:Details ; av:showsCount 0 ] ;
+    av:set [ av:paddingStart "none" ] .
+
+# ── look ──
+
+[ a av:Style ] rdfs:label "a layout heads itself" ;
+    av:order 6 ;
+    av:select [ a av:Selector ; av:element av:Layout ] ;
+    av:set [ av:labelPlacement av:heading ; av:labelRole av:heading ] .
+
+[ a av:Style ] rdfs:label "a source heads itself" ;
+    av:order 7 ;
+    av:select [ a av:Selector ; av:element av:Source ] ;
+    av:set [ av:labelPlacement av:heading ; av:labelRole av:heading ] .
+
+[ a av:Style ] rdfs:label "details head themselves" ;
+    av:order 8 ;
+    av:select [ a av:Selector ; av:element av:Details ] ;
+    av:set [ av:labelPlacement av:heading ; av:labelRole av:heading ] .
+
+[ a av:Style ] rdfs:label "a line leads with a caption" ;
+    av:order 9 ;
+    av:select [ a av:Selector ; av:type av:Line ] ;
+    av:set [ av:labelPlacement av:leading ; av:labelRole av:caption ] .
+
+[ a av:Style ] rdfs:label "a term leads with a caption" ;
+    av:order 10 ;
+    av:select [ a av:Selector ; av:element av:Term ] ;
+    av:set [ av:labelPlacement av:leading ; av:labelRole av:caption ] .
+
+[ a av:Style ] rdfs:label "the view root draws no heading" ;
+    av:order 11 ;
+    av:select [ a av:Selector ; av:element av:Source ; av:root true ] ;
+    av:set [ av:labelPlacement av:none ] .
+
+[ a av:Style ] rdfs:label "a text entry is body text" ;
+    av:order 12 ;
+    av:select [ a av:Selector ; av:element av:Text ] ;
+    av:set [ av:textRole av:body ] .
+
+# ── content: the default structure, as styles ──
+#
+# A record is its Main and its Details, cascading apart: the Main — the
+# row, varying by how many parts the datasource shows — has its styles
+# below; the Details needs none, its child sources standing in it
+# regardless. The silence law does the rest: a Term for an unshown part
+# stands nothing (the bare/line split, with av:showsCount for the
+# wrapping), a line whose every field fell silent stands nothing (why
+# nothing-shown records need no style). A Source needs none either: its
+# records stand in it regardless — the spine's, not a style's. What may be
+# done to a list is no part of its content at all: the actions are the
+# app's, offered where the perspective allows, and drawn by no style.
+
+[ a av:Style ] rdfs:label "a record is a line of its shown parts" ;
+    av:order 15 ;
+    av:select [ a av:Selector ; av:element av:Main ] ;
+    av:set [ av:content [
+        av:item [ a av:Layout, av:Line ; av:order 0 ;
+            av:content [
+                av:item [ a av:Term ; av:order 0 ; av:role rdf:subject ] ;
+                av:item [ a av:Term ; av:order 1 ; av:role rdf:predicate ] ;
+                av:item [ a av:Term ; av:order 2 ; av:role rdf:object ] ] ] ] ] .
+
+[ a av:Style ] rdfs:label "one shown part stands bare" ;
+    av:order 16 ;
+    av:select [ a av:Selector ; av:element av:Main ; av:showsCount 1 ] ;
+    av:set [ av:content [
+        av:item [ a av:Term ; av:order 0 ; av:role rdf:subject ] ;
+        av:item [ a av:Term ; av:order 1 ; av:role rdf:predicate ] ;
+        av:item [ a av:Term ; av:order 2 ; av:role rdf:object ] ] ] .
+
+# The root record's Main: the row of the top-level list, whatever a sheet
+# has boxed it in.
+[ a av:Style ] rdfs:label "the root record is captioned" ;
+    av:order 17 ;
+    av:select [ a av:Selector ; av:element av:Main ; av:root true ] ;
+    av:set [ av:content [
+        av:item [ a av:Layout, av:Line ; av:order 0 ;
+            av:labelled true ;
+            av:content [
+                av:item [ a av:Term ; av:order 0 ; av:role rdf:subject ] ;
+                av:item [ a av:Term ; av:order 1 ; av:role rdf:predicate ] ;
+                av:item [ a av:Term ; av:order 2 ; av:role rdf:object ] ] ] ] ] .
+
+[ a av:Style ] rdfs:label "a root part stands bare, captioned" ;
+    av:order 18 ;
+    av:select [ a av:Selector ; av:element av:Main ; av:root true ;
+        av:showsCount 1 ] ;
+    av:set [ av:content [
+        av:item [ a av:Term ; av:order 0 ; av:role rdf:subject ; av:labelled true ] ;
+        av:item [ a av:Term ; av:order 1 ; av:role rdf:predicate ; av:labelled true ] ;
+        av:item [ a av:Term ; av:order 2 ; av:role rdf:object ; av:labelled true ] ] ] .
+
+# ── modifiers: the looks a datasource asks for by class ──
+#
+# After the defaults, so a look asked for wins the record's Main whatever
+# its list or shown count — atomic content, the last word. The name is a
+# cell of the line, not a caption hung off it: an entry with geometry, so
+# the last style can size it.
+
+[ a av:Style ] rdfs:label "a compact source draws no heading" ;
+    av:order 19 ;
+    av:select [ a av:Selector ; av:element av:Source ; av:sourceType av:Compact ] ;
+    av:set [ av:labelPlacement av:none ] .
+
+[ a av:Style ] rdfs:label "a compact record leads with its source's name" ;
+    av:order 20 ;
+    av:select [ a av:Selector ; av:element av:Main ; av:sourceType av:Compact ] ;
+    av:set [ av:content [
+        av:item [ a av:Layout, av:Line ; av:order 0 ;
+            av:content [
+                av:item [ a av:Text, av:Name ; av:order 0 ; av:labelled true ] ;
+                av:item [ a av:Term ; av:order 1 ; av:role rdf:subject ] ;
+                av:item [ a av:Term ; av:order 2 ; av:role rdf:predicate ] ;
+                av:item [ a av:Term ; av:order 3 ; av:role rdf:object ] ] ] ] ] .
+
+# The predicate style's share and cap, so a name standing where a predicate
+# would have lines up with the predicates of its neighbours — and with the
+# names of its sibling sources. Drawn in the heading's role: it is the
+# source's heading, moved into the line, and should read as the one it
+# replaces.
+[ a av:Style ] rdfs:label "the name cell keeps to the predicate's cap" ;
+    av:order 21 ;
+    av:select [ a av:Selector ; av:element av:Text ; av:type av:Name ; av:parentType av:Line ] ;
+    av:set [ av:width "1fr" ; av:maxWidth "150px" ; av:textRole av:heading ] .
+
+# The name is bare text and the values are cells with padding of their own:
+# aligned at the top they would sit on different lines. On the baseline the
+# name reads with the value it names.
+[ a av:Style ] rdfs:label "a compact line aligns on the baseline" ;
+    av:order 22 ;
+    av:select [ a av:Selector ; av:element av:Layout ; av:type av:Line ; av:sourceType av:Compact ] ;
+    av:set [ av:align av:baseline ] .

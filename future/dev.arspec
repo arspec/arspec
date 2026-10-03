@@ -1,0 +1,3787 @@
+@prefix ars: <https://arspec.org/ars/spec/1/schema#> .
+@prefix aset: <https://arspec.org/ars/app/1/config#> .
+@prefix av: <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix fr: <https://arspec.org/ars/perspec/1/instruct_frames#> .
+@prefix fn: <https://arspec.org/ars/perspec/1/instruct_functions#> .
+@prefix blk: <https://arspec.org/ars/perspec/1/instruct_block#> .
+@prefix voc: <https://arspec.org/ars/perspec/1/instruct_vocabulary#> .
+
+[] a aset:Topic ;
+    aset:sourceURI "instruct.ttl", "algorithms.ttl" ;
+    aset:title "Programming ontology" .
+
+[] a aset:FileSettings ;
+    aset:fileName "instruct.ttl" .
+
+# == Frames ==
+#
+# The state half of a program: every ins:Frame with its contract beneath it —
+# where it stands, its slots in order with what each holds, owns and starts
+# as — and then the same frame read from the other end: the functions that
+# take it, the slots that hold it, the frames that stand within it.
+
+fr:perspec a ars:Perspective ;
+    ars:description "Each frame with its contract: the context it stands within, its slots in order, and who takes, holds and stands within it." ;
+    ars:inLensList false ;
+    ars:rootDataSource fr:ds_frames ;
+    ars:title "Frames" .
+
+fr:ds_frames a ars:DataSource ;
+    ars:child fr:ds_label, fr:ds_within, fr:ds_slots, fr:ds_takers, fr:ds_holders, fr:ds_inside ;
+    ars:distinctBy rdf:subject ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Frame"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Frame"
+        ]
+    ] ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+fr:ds_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Name" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+fr:ds_within a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "within"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Within" ;
+    ars:maxCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Frame"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+fr:ds_slots a ars:DataSource ;
+    ars:child fr:ds_slot_label, fr:ds_slot_holds, fr:ds_slot_owns, fr:ds_slot_initially, fr:ds_slot_writer ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "of"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 2
+        ]
+    ] ;
+    ars:label "Slots" ;
+    ars:order 2 ;
+    ars:orderQuery [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "order"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:sortBy ars:order ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+fr:ds_slot_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Name" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+fr:ds_slot_holds a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:IriValue ;
+            ars:nsUri "http://www.w3.org/2001/XMLSchema#" ;
+            ars:localName "integer"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "holds"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Holds" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:predicate
+        ] ;
+        ars:op ars:eq ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "holds"
+        ]
+    ] ;
+    ars:objectChoicesPart rdf:object ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+fr:ds_slot_owns a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "owns"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Owns" ;
+    ars:maxCount 1 ;
+    ars:objectTypeConstraint xsd:boolean ;
+    ars:objectVisible true ;
+    ars:order 2 .
+
+fr:ds_slot_initially a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:LiteralValue ;
+            ars:literal "0" ;
+            ars:datatype xsd:decimal
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "initially"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Initially" ;
+    ars:maxCount 1 ;
+    ars:objectVisible true ;
+    ars:order 3 .
+
+fr:ds_slot_writer a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "writer"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Writer" ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Function"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 4 .
+
+fr:ds_takers a ars:DataSource ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:copying [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:deletion [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:enableIf [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "takes"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "takes"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Taken by" ;
+    ars:order 3 ;
+    ars:subjectEditable false ;
+    ars:subjectViewMode rdfs:label ;
+    ars:subjectVisible true .
+
+fr:ds_holders a ars:DataSource ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:child fr:ds_holder_owns ;
+    ars:copying [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:deletion [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:enableIf [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "holds"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "holds"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Held by" ;
+    ars:order 4 ;
+    ars:subjectEditable false ;
+    ars:subjectVisible true .
+
+fr:ds_holder_owns a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "owns"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Owns" ;
+    ars:maxCount 1 ;
+    ars:objectTypeConstraint xsd:boolean ;
+    ars:objectVisible true ;
+    ars:order 0 ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:deletion [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:objectEditable false .
+
+fr:ds_inside a ars:DataSource ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:copying [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:deletion [
+        a ars:RowAction ;
+        ars:offered false
+    ] ;
+    ars:enableIf [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "within"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "within"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Context of" ;
+    ars:order 5 ;
+    ars:subjectEditable false ;
+    ars:subjectViewMode rdfs:label ;
+    ars:subjectVisible true .
+
+
+# == Functions ==
+#
+# The instruction half: every ins:Function with the frame it takes and its
+# body, which the Block service reads — and reads again under every Then,
+# Else and Do, a block being the same thing wherever it hangs.
+
+fn:perspec a ars:Perspective ;
+    ars:description "Each function with the frame it takes and its body, instruction by instruction." ;
+    ars:inLensList false ;
+    ars:rootDataSource fn:ds_functions ;
+    ars:title "Functions" .
+
+fn:ds_functions a ars:DataSource ;
+    ars:child fn:ds_label, fn:ds_takes, fn:ds_body ;
+    ars:distinctBy rdf:subject ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Function"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Function"
+        ]
+    ] ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+fn:ds_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Name" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+fn:ds_takes a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "takes"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Takes" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Frame"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+fn:ds_body a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:objectDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Block"
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:child fn:inv_block ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "body"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Body" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 2 .
+
+fn:inv_block a ars:Invocation ;
+    ars:objectParameter [
+        a ars:BlankValue
+    ] ;
+    ars:order 0 ;
+    ars:perspective blk:perspec ;
+    ars:predicateParameter [
+        a ars:BlankValue
+    ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+
+# == Block ==
+#
+# The instructions of the block a row is handed as its subject, in order.
+# The list's own Add makes an instruction of no kind yet, numbered where it
+# stands, and is kept to the menu and its key; the bar holds nine actions,
+# one per kind, each of which calls that Add and then says of the row it
+# made what kind it is and which parts it has, for the reader to fill. Each
+# part is a section pinned to one predicate, standing only under the kinds
+# that have it, and its editor offers what belongs there: a slot where a
+# slot is named, the operators, the functions, the frames, the kinds — and
+# takes nothing else, except for an operand, which may as well be a
+# constant typed. Then, Else and Do run this perspective again on the block
+# they name.
+
+blk:perspec a ars:Perspective ;
+    ars:description "The instructions of one block, in order, each with the parts its kind has — and under an If or a While, the blocks it runs." ;
+    ars:inFileTabs false ;
+    ars:inLensList false ;
+    ars:rootDataSource blk:ds_steps ;
+    ars:serviceOf fn:perspec ;
+    ars:title "Block" .
+
+blk:ds_steps a ars:DataSource ;
+    ars:action [
+        a ars:CustomAction ;
+        ars:glyph "Se" ;
+        ars:label "Set" ;
+        ars:order 3 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Set"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "target"
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "value"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 2
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Co" ;
+        ars:label "Compute" ;
+        ars:order 4 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Compute"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "target"
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "left"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 2
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "op"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "add"
+                ] ;
+                ars:order 3
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "right"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 4
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Mk" ;
+        ars:label "Make" ;
+        ars:order 5 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Make"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "target"
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "frame"
+                ] ;
+                ars:order 2
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Pu" ;
+        ars:label "Put" ;
+        ars:order 6 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Put"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "into"
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "slot"
+                ] ;
+                ars:order 2
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "value"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 3
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Ge" ;
+        ars:label "Get" ;
+        ars:order 7 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Get"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "target"
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "from"
+                ] ;
+                ars:order 2
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "slot"
+                ] ;
+                ars:order 3
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Ca" ;
+        ars:label "Call" ;
+        ars:order 8 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Call"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "function"
+                ] ;
+                ars:order 1
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "If" ;
+        ars:label "If" ;
+        ars:order 9 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "If"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "left"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "op"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "eq"
+                ] ;
+                ars:order 2
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "right"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 3
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "then"
+                ] ;
+                ars:alsoMakes [
+                    a ars:AddedTriple ;
+                    ars:objectDefaultValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Block"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 4
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Wh" ;
+        ars:label "While" ;
+        ars:order 10 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "While"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "left"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 1
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "op"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "neq"
+                ] ;
+                ars:order 2
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "right"
+                ] ;
+                ars:objectDefaultValue [
+                    a ars:LiteralValue ;
+                    ars:literal "0" ;
+                    ars:datatype xsd:decimal
+                ] ;
+                ars:order 3
+            ], [
+                a ars:InsertStep ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                    ars:localName "do"
+                ] ;
+                ars:alsoMakes [
+                    a ars:AddedTriple ;
+                    ars:objectDefaultValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Block"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 4
+            ] ;
+            ars:order 0
+        ]
+    ], [
+        a ars:CustomAction ;
+        ars:glyph "Re" ;
+        ars:label "Return" ;
+        ars:order 11 ;
+        ars:step [
+            a ars:CallStep ;
+            ars:calls ars:adding ;
+            ars:step [
+                a ars:SelectStep ;
+                ars:filter [
+                    a ars:FilterAnd ;
+                    ars:operand [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:subject
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:TermValue ;
+                            ars:role rdf:object ;
+                            ars:bindingDistance 1
+                        ] ;
+                        ars:order 0
+                    ], [
+                        a ars:FilterCompare ;
+                        ars:left [
+                            a ars:TermValue ;
+                            ars:role rdf:predicate
+                        ] ;
+                        ars:op ars:eq ;
+                        ars:value [
+                            a ars:IriValue ;
+                            ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                            ars:localName "type"
+                        ] ;
+                        ars:order 1
+                    ]
+                ] ;
+                ars:maxCount 1 ;
+                ars:minCount 1 ;
+                ars:step [
+                    a ars:UpdateStep ;
+                    ars:objectNewValue [
+                        a ars:IriValue ;
+                        ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                        ars:localName "Return"
+                    ] ;
+                    ars:order 0
+                ] ;
+                ars:order 0
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:inActionBar false ;
+        ars:subjectDefaultValue [
+            a ars:TermValue ;
+            ars:role rdf:subject ;
+            ars:bindingDistance 1
+        ] ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:objectDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Instruction"
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:child blk:ds_kind, blk:ds_target, blk:ds_frame, blk:ds_into, blk:ds_from, blk:ds_slot, blk:ds_value, blk:ds_left, blk:ds_op, blk:ds_right, blk:ds_function, blk:ds_on, blk:ds_then, blk:ds_else, blk:ds_do ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "step"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:orderQuery [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "order"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:sortBy ars:order .
+
+blk:ds_kind a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Kind" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "subClassOf"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Instruction"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+blk:ds_target a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Set"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Compute"
+            ] ;
+            ars:order 1
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Make"
+            ] ;
+            ars:order 2
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Get"
+            ] ;
+            ars:order 3
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "target"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Target" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+blk:ds_frame a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Make"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "frame"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Frame" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Frame"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 2 .
+
+blk:ds_into a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Put"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "into"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Into" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 3 .
+
+blk:ds_from a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Get"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "from"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "From" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 4 .
+
+blk:ds_slot a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Put"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Get"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Slot" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 5 .
+
+blk:ds_value a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:LiteralValue ;
+            ars:literal "0" ;
+            ars:datatype xsd:decimal
+        ]
+    ] ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Set"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Put"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "value"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Value" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 6 .
+
+blk:ds_left a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:LiteralValue ;
+            ars:literal "0" ;
+            ars:datatype xsd:decimal
+        ]
+    ] ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Compute"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "If"
+            ] ;
+            ars:order 1
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "While"
+            ] ;
+            ars:order 2
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "left"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Left" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 7 .
+
+blk:ds_op a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "eq"
+        ]
+    ] ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Compute"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "If"
+            ] ;
+            ars:order 1
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "While"
+            ] ;
+            ars:order 2
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "op"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Operator" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Operator"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 8 .
+
+blk:ds_right a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:objectDefaultValue [
+            a ars:LiteralValue ;
+            ars:literal "0" ;
+            ars:datatype xsd:decimal
+        ]
+    ] ;
+    ars:enableIf [
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Compute"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "If"
+            ] ;
+            ars:order 1
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:op ars:typeIs ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "While"
+            ] ;
+            ars:order 2
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "right"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Right" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 9 .
+
+blk:ds_function a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Call"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "function"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Function" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Function"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 10 .
+
+blk:ds_on a ars:DataSource, av:Compact ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "Call"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "on"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "On" ;
+    ars:maxCount 1 ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Slot"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectChoicesOnly true ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 11 .
+
+blk:ds_then a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:objectDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Block"
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:child blk:inv_then ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "If"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "then"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Then" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 12 .
+
+blk:ds_else a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:objectDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Block"
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:child blk:inv_else ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "If"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "else"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Else" ;
+    ars:maxCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 13 .
+
+blk:ds_do a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:objectDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "Block"
+            ] ;
+            ars:order 0
+        ]
+    ] ;
+    ars:child blk:inv_do ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:object ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+            ars:localName "While"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/instruct#" ;
+                ars:localName "do"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Do" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 14 .
+
+blk:inv_then a ars:Invocation ;
+    ars:objectParameter [
+        a ars:BlankValue
+    ] ;
+    ars:order 0 ;
+    ars:perspective blk:perspec ;
+    ars:predicateParameter [
+        a ars:BlankValue
+    ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+blk:inv_else a ars:Invocation ;
+    ars:objectParameter [
+        a ars:BlankValue
+    ] ;
+    ars:order 0 ;
+    ars:perspective blk:perspec ;
+    ars:predicateParameter [
+        a ars:BlankValue
+    ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+blk:inv_do a ars:Invocation ;
+    ars:objectParameter [
+        a ars:BlankValue
+    ] ;
+    ars:order 0 ;
+    ars:perspective blk:perspec ;
+    ars:predicateParameter [
+        a ars:BlankValue
+    ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+
+# == Vocabulary ==
+#
+# For the ontology itself: every class with what it is, the properties that
+# name it as their domain, and its members where it has any.
+
+voc:perspec a ars:Perspective ;
+    ars:description "Each class with its comment, the properties it is the domain of, and its members." ;
+    ars:inLensList false ;
+    ars:rootDataSource voc:ds_classes ;
+    ars:title "Vocabulary" .
+
+voc:ds_classes a ars:DataSource ;
+    ars:child voc:ds_label, voc:ds_kind_of, voc:ds_comment, voc:ds_properties, voc:ds_members ;
+    ars:distinctBy rdf:subject ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "http://www.w3.org/2002/07/owl#" ;
+            ars:localName "Class"
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "http://www.w3.org/2002/07/owl#" ;
+            ars:localName "Class"
+        ]
+    ] ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+voc:ds_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Label" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+voc:ds_kind_of a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "subClassOf"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Kind of" ;
+    ars:objectChoices [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2002/07/owl#" ;
+                ars:localName "Class"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+voc:ds_comment a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "comment"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Comment" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 2 .
+
+voc:ds_properties a ars:DataSource ;
+    ars:child voc:ds_prop_range, voc:ds_prop_comment ;
+    ars:enableIf [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "domain"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "domain"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Properties" ;
+    ars:order 3 ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+voc:ds_prop_range a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "range"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Range" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectChoices [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:predicate
+        ] ;
+        ars:op ars:eq ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+            ars:localName "range"
+        ]
+    ] ;
+    ars:objectChoicesPart rdf:object ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectViewMode rdfs:label ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+voc:ds_prop_comment a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "comment"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Comment" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 1 .
+
+voc:ds_members a ars:DataSource ;
+    ars:child voc:ds_member_label, voc:ds_member_comment ;
+    ars:enableIf [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ;
+                ars:localName "type"
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:object
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Members" ;
+    ars:order 4 ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+voc:ds_member_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Label" ;
+    ars:maxCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+voc:ds_member_comment a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "comment"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Comment" ;
+    ars:maxCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 1 .

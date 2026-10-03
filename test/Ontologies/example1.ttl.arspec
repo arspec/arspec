@@ -1,0 +1,487 @@
+@prefix ars: <https://arspec.org/ars/spec/1/schema#> .
+@prefix aset: <https://arspec.org/ars/app/1/config#> .
+@prefix av: <https://arspec.org/ars/spec/1/schema/view#> .
+@prefix n0: <http://arspec.org/perspec/1/set_attributes#> .
+@prefix n02: <http://arspec.org/perspec/1/selector_attributes#> .
+@prefix n1: <http://arspec.org/perspec/1/styles_dev#> .
+@prefix n2: <https://arspec.org/ars/view/1/default/perspec/av_items#> .
+@prefix n22: <https://arspec.org/ars/perspec/1/rec_attributes#> .
+@prefix p11: <https://arspec.org/ars/perspec/1/styles#> .
+@prefix p7: <https://arspec.org/ars/perspec/1/prefixes#> .
+@prefix p_test: <https://arspec.org/ars/perspec/1/test#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix n12: <https://arspec.org/ars/perspec/1/obj_attributes#> .
+@prefix p6: <http://arspec.org/programming-example1/perspec/test#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+n02:ds_attributes a ars:DataSource ;
+    ars:adding ars:focused ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:eq ;
+        ars:value [
+            a ars:TermValue ;
+            ars:role rdf:subject ;
+            ars:bindingDistance 1
+        ]
+    ] ;
+    ars:loadAppDefaults true ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:objectDefaultValue [
+        a ars:IriValue ;
+        ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+        ars:localName "Record"
+    ] ;
+    ars:objectVisible true ;
+    ars:predicateDefaultValue [
+        a ars:IriValue ;
+        ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+        ars:localName "type"
+    ] ;
+    ars:predicateVisible true ;
+    ars:subjectDefaultValue [
+        a ars:TermValue ;
+        ars:role rdf:subject ;
+        ars:bindingDistance 1
+    ] .
+
+n02:perspec a ars:Perspective ;
+    ars:description "What a style's selector says, and a new statement started as av:type av:Record." ;
+    ars:inFileTabs false ;
+    ars:inLensList false ;
+    ars:rootDataSource n02:ds_attributes ;
+    ars:serviceOf n1:perspec ;
+    ars:title "Selector Attributes" .
+
+n0:ds_attributes a ars:DataSource ;
+    ars:adding ars:focused ;
+    ars:child n0:inv_content ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:eq ;
+        ars:value [
+            a ars:TermValue ;
+            ars:role rdf:subject ;
+            ars:bindingDistance 1
+        ]
+    ] ;
+    ars:loadAppDefaults true ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:objectDefaultValue [
+        a ars:LiteralValue ;
+        ars:literal ""
+    ] ;
+    ars:objectOnClick ars:expandAndEdit ;
+    ars:objectVisible true ;
+    ars:predicateDefaultValue [
+        a ars:IriValue ;
+        ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+        ars:localName ""
+    ] ;
+    ars:predicateVisible true ;
+    ars:subjectDefaultValue [
+        a ars:TermValue ;
+        ars:role rdf:subject ;
+        ars:bindingDistance 1
+    ] .
+
+n0:inv_content a ars:Invocation ;
+    ars:enableIf [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:predicate ;
+            ars:bindingDistance 1
+        ] ;
+        ars:op ars:eq ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+            ars:localName "content"
+        ]
+    ] ;
+    ars:objectParameter [ a ars:BlankValue ] ;
+    ars:order 0 ;
+    ars:perspective n2:perspec ;
+    ars:predicateParameter [ a ars:BlankValue ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+n0:perspec a ars:Perspective ;
+    ars:description "The properties a style sets, and a new statement started in the view vocabulary for the reader to finish." ;
+    ars:inFileTabs false ;
+    ars:inLensList false ;
+    ars:rootDataSource n0:ds_attributes ;
+    ars:serviceOf n1:perspec ;
+    ars:title "Set Attributes" .
+
+n1:ds_label a ars:DataSource, av:Compact ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "http://www.w3.org/2000/01/rdf-schema#" ;
+                ars:localName "label"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Label" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectTypeConstraint xsd:string ;
+    ars:objectVisible true ;
+    ars:order 0 .
+
+n1:ds_select a ars:DataSource, av:Compact ;
+    ars:child n1:inv_select ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+                ars:localName "select"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Selector" ;
+    ars:loadAppDefaults true ;
+    ars:loadImportedFiles true ;
+    ars:loadUserData true ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 1 ;
+    ars:predicateOnClick ars:expand .
+
+n1:ds_set a ars:DataSource, av:Compact ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:predicateDefaultValue [
+            a ars:IriValue ;
+            ars:nsUri "http://arspec.org/" ;
+            ars:localName "prop"
+        ]
+    ] ;
+    ars:child n1:inv_set ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+                ars:localName "set"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:label "Set Attributes" ;
+    ars:maxCount 1 ;
+    ars:minCount 1 ;
+    ars:objectOnClick ars:expand ;
+    ars:objectTypeConstraint ars:term ;
+    ars:objectVisible true ;
+    ars:order 2 .
+
+n1:ds_styles a ars:DataSource ;
+    ars:adding [
+        a ars:RowAction ;
+        ars:subjectDefaultValue [ a ars:BlankValue ] ;
+        ars:alsoMakes [
+            a ars:AddedTriple ;
+            ars:order 0 ;
+            ars:subjectDefaultValue [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:predicateDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "http://arspec.org/demo/example1#" ;
+                ars:localName "inner1"
+            ] ;
+            ars:alsoMakes [
+                a ars:AddedTriple ;
+                ars:order 0 ;
+                ars:subjectDefaultValue [
+                    a ars:TermValue ;
+                    ars:role rdf:object ;
+                    ars:bindingDistance 1
+                ] ;
+                ars:predicateDefaultValue [
+                    a ars:IriValue ;
+                    ars:nsUri "http://arspec.org/demo/example1#" ;
+                    ars:localName "inner2"
+                ]
+            ]
+        ], [
+            a ars:AddedTriple ;
+            ars:order 1 ;
+            ars:subjectDefaultValue [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:predicateDefaultValue [
+                a ars:IriValue ;
+                ars:nsUri "http://arspec.org/demo/example1#" ;
+                ars:localName "inner3"
+            ]
+        ]
+    ] ;
+    ars:child n1:ds_label, n1:ds_select, n1:ds_set ;
+    ars:distinctBy rdf:subject ;
+    ars:filter [
+        a ars:FilterCompare ;
+        ars:left [
+            a ars:TermValue ;
+            ars:role rdf:subject
+        ] ;
+        ars:op ars:typeIs ;
+        ars:value [
+            a ars:IriValue ;
+            ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+            ars:localName "Style"
+        ]
+    ] ;
+    ars:orderQuery [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+                ars:localName "order"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:sortBy ars:order ;
+    ars:subjectOnClick ars:edit ;
+    ars:subjectVisible true .
+
+n1:inv_select a ars:Invocation ;
+    ars:objectParameter [ a ars:BlankValue ] ;
+    ars:order 0 ;
+    ars:perspective n02:perspec ;
+    ars:predicateParameter [ a ars:BlankValue ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+n1:inv_set a ars:Invocation ;
+    ars:objectParameter [ a ars:BlankValue ] ;
+    ars:order 0 ;
+    ars:perspective n0:perspec ;
+    ars:predicateParameter [ a ars:BlankValue ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+n1:perspec a ars:Perspective ;
+    ars:description "Each av:Style node with its label, order, selector and stated properties in separate sections." ;
+    ars:inLensList false ;
+    ars:rootDataSource n1:ds_styles ;
+    ars:title "Styles Dev" .
+
+n2:inv_attributes a ars:Invocation ;
+    ars:objectParameter [ a ars:BlankValue ] ;
+    ars:order 0 ;
+    ars:perspective n22:perspec ;
+    ars:predicateParameter [ a ars:BlankValue ] ;
+    ars:subjectParameter [
+        a ars:TermValue ;
+        ars:role rdf:object ;
+        ars:bindingDistance 1
+    ] .
+
+n2:perspec a ars:Perspective ;
+    ars:inFileTabs false ;
+    ars:inLensList false ;
+    ars:rootDataSource n2:root ;
+    ars:serviceOf n1:perspec ;
+    ars:title "Content Items" .
+
+n2:root a ars:DataSource ;
+    ars:adding ars:focused ;
+    ars:child n2:inv_attributes ;
+    ars:filter [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:subject ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+                ars:localName "item"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:objectVisible true ;
+    ars:orderQuery [
+        a ars:FilterAnd ;
+        ars:operand [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:subject
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:TermValue ;
+                ars:role rdf:object ;
+                ars:bindingDistance 1
+            ] ;
+            ars:order 0
+        ], [
+            a ars:FilterCompare ;
+            ars:left [
+                a ars:TermValue ;
+                ars:role rdf:predicate
+            ] ;
+            ars:op ars:eq ;
+            ars:value [
+                a ars:IriValue ;
+                ars:nsUri "https://arspec.org/ars/spec/1/schema/view#" ;
+                ars:localName "order"
+            ] ;
+            ars:order 1
+        ]
+    ] ;
+    ars:sortBy ars:order .
+
+[] a aset:Topic ;
+    aset:sourceURI "example1.ttl", "file:///C:/Work/powl/assets/view/1/default.ttl" ;
+    aset:title "Programming ontology" .
+
+[] a aset:FileSettings ;
+    aset:fileName "default.ttl" ;
+    aset:overriddenPerspec p11: .
+
+[] a aset:FileSettings ;
+    aset:fileName "example.ttl" ;
+    aset:overriddenPerspec p_test: .
+
+[] a aset:FileSettings ;
+    aset:fileName "example1.ttl" ;
+    aset:overriddenPerspec p11: .
+
+[] a aset:FileSettings ;
+    aset:fileName "example1.ttl.arspec" ;
+    aset:overriddenPerspec p7:, n1: .

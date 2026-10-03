@@ -1,0 +1,196 @@
+# Three small programs said in instruct.ttl, to see how they read and edit.
+#
+#   gcd        Euclid's, a loop over two slots
+#   factorial  recursive: each call makes the frame of the next, fills it,
+#              calls on it and reads what it left — and counts itself in a
+#              slot of the frame it stands within
+#   main       makes a Fact, runs it, and says the answer, which it may
+#              because Main stands within the console
+
+@prefix : <https://arspec.org/ars/demo/1/algorithms#> .
+@prefix ins: <https://arspec.org/ars/spec/1/instruct#> .
+@prefix demo: <https://arspec.org/ars/demo/1/> .
+@prefix spec: <https://arspec.org/ars/spec/1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+demo:algorithms a owl:Ontology ;
+    rdfs:label "algorithms" ;
+    rdfs:comment "Example programs in the instruct vocabulary." ;
+    owl:imports spec:instruct .
+
+# ── gcd ──────────────────────────────────────────────────────────────────────
+# The answer is left in a.
+
+:Gcd a ins:Frame ;
+    rdfs:label "Gcd" .
+
+:Gcd_a a ins:Slot ; rdfs:label "a" ; ins:of :Gcd ; ins:order 0 ; ins:holds xsd:integer .
+:Gcd_b a ins:Slot ; rdfs:label "b" ; ins:of :Gcd ; ins:order 1 ; ins:holds xsd:integer .
+:Gcd_t a ins:Slot ; rdfs:label "t" ; ins:of :Gcd ; ins:order 2 ; ins:holds xsd:integer ;
+    ins:writer :gcd .
+
+:gcd a ins:Function ;
+    rdfs:label "gcd" ;
+    ins:takes :Gcd ;
+    ins:body [
+        a ins:Block ;
+        ins:step [
+            a ins:While ;
+            ins:order 0 ;
+            ins:left :Gcd_b ; ins:op ins:neq ; ins:right 0 ;
+            ins:do [
+                a ins:Block ;
+                ins:step [
+                    a ins:Compute ;
+                    ins:order 0 ;
+                    ins:target :Gcd_t ;
+                    ins:left :Gcd_a ; ins:op ins:mod ; ins:right :Gcd_b
+                ], [
+                    a ins:Set ;
+                    ins:order 1 ;
+                    ins:target :Gcd_a ;
+                    ins:value :Gcd_b
+                ], [
+                    a ins:Set ;
+                    ins:order 2 ;
+                    ins:target :Gcd_b ;
+                    ins:value :Gcd_t
+                ]
+            ]
+        ]
+    ] .
+
+# ── main ─────────────────────────────────────────────────────────────────────
+
+:Main a ins:Frame ;
+    rdfs:label "Main" ;
+    ins:within ins:Console .
+
+:Main_calls a ins:Slot ; rdfs:label "calls" ; ins:of :Main ; ins:order 0 ; ins:holds xsd:integer ;
+    ins:initially 0 .
+:Main_fact a ins:Slot ; rdfs:label "fact" ; ins:of :Main ; ins:order 1 ; ins:holds :Fact ;
+    ins:owns true .
+:Main_answer a ins:Slot ; rdfs:label "answer" ; ins:of :Main ; ins:order 2 ; ins:holds xsd:integer .
+:Main_line a ins:Slot ; rdfs:label "line" ; ins:of :Main ; ins:order 3 ; ins:holds ins:Say ;
+    ins:owns true .
+
+:main a ins:Function ;
+    rdfs:label "main" ;
+    ins:takes :Main ;
+    ins:body [
+        a ins:Block ;
+        ins:step [
+            a ins:Make ;
+            ins:order 0 ;
+            ins:target :Main_fact ;
+            ins:frame :Fact
+        ], [
+            a ins:Put ;
+            ins:order 1 ;
+            ins:into :Main_fact ; ins:slot :Fact_n ;
+            ins:value 5
+        ], [
+            a ins:Call ;
+            ins:order 2 ;
+            ins:function :factorial ;
+            ins:on :Main_fact
+        ], [
+            a ins:Get ;
+            ins:order 3 ;
+            ins:target :Main_answer ;
+            ins:from :Main_fact ; ins:slot :Fact_result
+        ], [
+            a ins:Make ;
+            ins:order 4 ;
+            ins:target :Main_line ;
+            ins:frame ins:Say
+        ], [
+            a ins:Put ;
+            ins:order 5 ;
+            ins:into :Main_line ; ins:slot ins:Say_text ;
+            ins:value :Main_answer
+        ], [
+            a ins:Call ;
+            ins:order 6 ;
+            ins:function ins:say ;
+            ins:on :Main_line
+        ]
+    ] .
+
+# ── factorial ────────────────────────────────────────────────────────────────
+# A Fact stands within Main, so the function may count its calls there: what
+# lies below it is state it was told about, not a stack it cannot see.
+
+:Fact a ins:Frame ;
+    rdfs:label "Fact" ;
+    ins:within :Main .
+
+:Fact_n a ins:Slot ; rdfs:label "n" ; ins:of :Fact ; ins:order 0 ; ins:holds xsd:integer .
+:Fact_result a ins:Slot ; rdfs:label "result" ; ins:of :Fact ; ins:order 1 ; ins:holds xsd:integer ;
+    ins:writer :factorial .
+:Fact_next a ins:Slot ; rdfs:label "next" ; ins:of :Fact ; ins:order 2 ; ins:holds :Fact ;
+    ins:owns true .
+:Fact_t a ins:Slot ; rdfs:label "t" ; ins:of :Fact ; ins:order 3 ; ins:holds xsd:integer ;
+    ins:writer :factorial .
+
+:factorial a ins:Function ;
+    rdfs:label "factorial" ;
+    ins:takes :Fact ;
+    ins:body [
+        a ins:Block ;
+        ins:step [
+            a ins:Compute ;
+            ins:order 0 ;
+            ins:target :Main_calls ;
+            ins:left :Main_calls ; ins:op ins:add ; ins:right 1
+        ], [
+            a ins:If ;
+            ins:order 1 ;
+            ins:left :Fact_n ; ins:op ins:lte ; ins:right 1 ;
+            ins:then [
+                a ins:Block ;
+                ins:step [
+                    a ins:Set ;
+                    ins:order 0 ;
+                    ins:target :Fact_result ;
+                    ins:value 1
+                ], [
+                    a ins:Return ;
+                    ins:order 1
+                ]
+            ]
+        ], [
+            a ins:Make ;
+            ins:order 2 ;
+            ins:target :Fact_next ;
+            ins:frame :Fact
+        ], [
+            a ins:Compute ;
+            ins:order 3 ;
+            ins:target :Fact_t ;
+            ins:left :Fact_n ; ins:op ins:sub ; ins:right 1
+        ], [
+            a ins:Put ;
+            ins:order 4 ;
+            ins:into :Fact_next ; ins:slot :Fact_n ;
+            ins:value :Fact_t
+        ], [
+            a ins:Call ;
+            ins:order 5 ;
+            ins:function :factorial ;
+            ins:on :Fact_next
+        ], [
+            a ins:Get ;
+            ins:order 6 ;
+            ins:target :Fact_t ;
+            ins:from :Fact_next ; ins:slot :Fact_result
+        ], [
+            a ins:Compute ;
+            ins:order 7 ;
+            ins:target :Fact_result ;
+            ins:left :Fact_n ; ins:op ins:mul ; ins:right :Fact_t
+        ]
+    ] .

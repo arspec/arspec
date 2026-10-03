@@ -1,0 +1,20 @@
+# == Namespaces ==
+# The file's prefix table: which namespace it calls its own, and every
+# namespace it binds.
+#
+# A pseudo-perspective: this spec carries only the perspective-level
+# properties — no datasources, no styles — because the screen itself is a
+# hand-written widget (lib/views/namespace.dart), not a derived view. What
+# the spec buys it is a place in the lists: a checkbox on the perspectives
+# screen, a saved visibility, a tab gated like any other. It is offered in
+# no lens list — a prefix table is a file's, never a term's — and the
+# perspective is never configurable, there being no datasource tree to
+# configure.
+
+@prefix n0: <https://arspec.org/ars/perspec/1/prefixes#> .
+@prefix ars: <https://arspec.org/ars/spec/1/schema#> .
+
+n0:perspec a ars:Perspective ;
+    ars:title "Prefixes" ;
+    ars:description "The file's prefix table: its own namespace, and every prefix it binds." ;
+    ars:inLensList false .
