@@ -100,7 +100,7 @@ void main() {
                 throwsArgumentError);
         });
 
-        test('isUnary marks the presence ops and the blank-node test, '
+        test('isUnary marks the presence ops and the two tests of kind, '
             'isPresenceTest the presence ops alone', () {
             final unary =
                 ModelFilterOp.values.where((op) => op.isUnary).toSet();
@@ -108,6 +108,7 @@ void main() {
                 ModelFilterOp.exists,
                 ModelFilterOp.doesntExist,
                 ModelFilterOp.isBlank,
+                ModelFilterOp.isLiteral,
             });
             final presence =
                 ModelFilterOp.values.where((op) => op.isPresenceTest).toSet();

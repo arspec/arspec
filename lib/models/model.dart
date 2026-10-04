@@ -149,11 +149,24 @@ enum ModelFilterOp {
     /// selector, an address, written inline as `[ … ]` — from the named
     /// terms it points at, each of which is a record of its own: a tree
     /// over a term follows the first and stops at the second.
-    isBlank;
+    isBlank,
+
+    /// Whether the operand resolves to a literal — a value, not a term:
+    /// text, a number, a date. Unary like [isBlank], and false where the
+    /// operand resolves to a named term, a blank node, or nothing. What
+    /// tells a row that points at something from one that only says
+    /// something: nothing stands beneath a value, no statement having one
+    /// for its subject.
+    isLiteral;
 
     /// Whether this operator tests a single operand — for presence, or for
-    /// being a blank node — rather than comparing two resolved values.
-    bool get isUnary => this == exists || this == doesntExist || this == isBlank;
+    /// being a blank node or a literal — rather than comparing two resolved
+    /// values.
+    bool get isUnary =>
+        this == exists ||
+        this == doesntExist ||
+        this == isBlank ||
+        this == isLiteral;
 
     /// Whether this operator is one of the presence tests, true according to
     /// whether the operand *resolves*.
@@ -259,7 +272,8 @@ class ModelQuery {
                 '$op is a graph test, not a string comparison'),
             ModelFilterOp.exists ||
             ModelFilterOp.doesntExist ||
-            ModelFilterOp.isBlank =>
+            ModelFilterOp.isBlank ||
+            ModelFilterOp.isLiteral =>
                 throw ArgumentError('$op is a unary test, not a comparison'),
         };
     }
@@ -822,6 +836,9 @@ class Model extends RdfGraph {
                 if (c.op == ModelFilterOp.isBlank) {
                     return _valueIsBlank(c.value, termIndex);
                 }
+                if (c.op == ModelFilterOp.isLiteral) {
+                    return _valueIsLiteral(c.value, termIndex);
+                }
                 if (c.op.isUnary) {
                     return _valueExists(c.value, termIndex) ==
                         (c.op == ModelFilterOp.exists);
@@ -862,6 +879,12 @@ class Model extends RdfGraph {
         if (!_valueExists(expr, termIndex)) return false;
         return _resolveValue(expr, termIndex)?.kind ==
             ModelResolvedValueKind.blank;
+    }
+
+    bool _valueIsLiteral(ModelQueryValueExpr expr, TermIndex termIndex) {
+        if (!_valueExists(expr, termIndex)) return false;
+        return _resolveValue(expr, termIndex)?.kind ==
+            ModelResolvedValueKind.literal;
     }
 
     ModelResolvedValue? _resolveValue(ModelQueryValueExpr expr, TermIndex termIndex) {

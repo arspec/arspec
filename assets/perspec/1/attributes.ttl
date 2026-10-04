@@ -213,13 +213,18 @@ refby:ds_references a ars:DataSource ;
 # The subordinate is an invocation of this very perspective, handed a row
 # holding the invoking row's object as its subject and nothing else; the
 # root's join then reads that object exactly as it read the term above. It
-# is enabled only where that object is a node with no name (ars:enableIf,
+# is enabled where that object is a node with no name (ars:enableIf,
 # ars:isBlank): an anonymous node is part of the record it hangs off — a
 # selector, an address, written inline — and its attributes belong beneath
-# it; a named term is a record of its own, reached from its own row or with
-# "Open term with…"; and a literal has none, no triple having a literal for
-# its subject. The condition reads the invoking row as the parent, the way
-# any subordinate's does.
+# it. A named term is a record of its own, reached from its own row or with
+# "Open term with…" — and, once the reader has opened the row that points
+# at it (ars:FilterState, ars:expanded true), followed here as well: the
+# tree goes where the reader takes it, and stops where they leave it. A
+# literal has none either way, no triple having a literal for its subject,
+# and the opening of its row is not taken for a request to follow it
+# (ars:isLiteral): a click on the row is the row's, not an empty frame's.
+# The condition reads the invoking row as the parent, the way any
+# subordinate's does.
 #
 # The tree is drawn one turn ahead of the data: where the rows are made, a
 # perspective already standing above on the path is not drawn again, so a
@@ -263,16 +268,33 @@ rec:ds_attributes a ars:DataSource ;
     ars:child rec:inv_recursive .
 
 # Itself, on the value: the invoking row's object where the subject was, and
-# nothing in the other two parts — and only where that object is a node with
-# no name.
+# nothing in the other two parts — where that object is a node with no name,
+# or the reader has opened the row and the object is a term to follow.
 
 rec:inv_recursive a ars:Invocation ;
     ars:order 0 ;
     ars:perspective rec:perspec ;
     ars:enableIf [
-        a ars:FilterCompare ;
-        ars:left [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
-        ars:op ars:isBlank
+        a ars:FilterOr ;
+        ars:operand [
+            a ars:FilterCompare ; ars:order 0 ;
+            ars:left [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
+            ars:op ars:isBlank
+        ], [
+            a ars:FilterAnd ; ars:order 1 ;
+            ars:operand [
+                a ars:FilterState ; ars:order 0 ;
+                ars:bindingDistance 1 ;
+                ars:expanded true
+            ], [
+                a ars:FilterNot ; ars:order 1 ;
+                ars:operand [
+                    a ars:FilterCompare ;
+                    ars:left [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
+                    ars:op ars:isLiteral
+                ]
+            ]
+        ]
     ] ;
     ars:subjectParameter [ a ars:TermValue ; ars:role rdf:object ; ars:bindingDistance 1 ] ;
     ars:predicateParameter [ a ars:BlankValue ] ;

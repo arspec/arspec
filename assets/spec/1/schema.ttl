@@ -522,7 +522,7 @@ ars:objectParameter a rdf:Property, owl:ObjectProperty ;
 
 ars:Filter a rdfs:Class, owl:Class ;
     rdfs:label "Filter" ;
-    rdfs:comment "A condition on a row: a comparison, a child-exists test, or a connective over other conditions. What ars:filter and ars:operand hold." .
+    rdfs:comment "A condition on a row: a comparison, a child-exists test, a test of a record's state, or a connective over other conditions. What ars:filter and ars:operand hold." .
 
 ars:FilterCompare a rdfs:Class, owl:Class ;
     rdfs:label "Comparison" ;
@@ -532,6 +532,11 @@ ars:FilterCompare a rdfs:Class, owl:Class ;
 ars:FilterChildExists a rdfs:Class, owl:Class ;
     rdfs:label "Child exists" ;
     rdfs:comment "A condition true when the referenced subordinate datasource yields at least one row under the current one." ;
+    rdfs:subClassOf ars:Filter .
+
+ars:FilterState a rdfs:Class, owl:Class ;
+    rdfs:label "Record state" ;
+    rdfs:comment "A condition on what the reader has done with a row rather than on what the row says: whether the record at ars:bindingDistance — 1 for the row the condition is read under — stands open, ars:expanded true, or does not, ars:expanded false. Read off the row where it is made, with no store asked: an expanded record's row carries the mark, and so does a page's own record and the row a lens tab is run about. Under an invocation's ars:enableIf it puts a perspective beneath a row only once the reader has opened it, which is how Attributes+ follows a named value; on a datasource's ars:filter or ars:enableIf it stands the source only there. A reference past the top of the chain holds nothing, whichever answer is asked for. The rows of a datasource whose condition reads a record's state are never answered from the cache, an expansion changing none of what the cache is keyed by." ;
     rdfs:subClassOf ars:Filter .
 
 ars:FilterAnd a rdfs:Class, owl:Class ;
@@ -612,9 +617,14 @@ ars:role a rdf:Property, owl:ObjectProperty ;
 
 ars:bindingDistance a rdf:Property, owl:DatatypeProperty ;
     rdfs:label "Binding distance" ;
-    rdfs:comment "How many evaluation levels up the referenced row stands: 0 is the current row, 1 its parent." ;
-    rdfs:domain ars:TermValue ;
+    rdfs:comment "How many evaluation levels up the referenced row stands: 0 is the current row, 1 its parent. On an ars:TermValue, where silence is 0; and on an ars:FilterState, which says it always, 1 being the row it is usually about." ;
     rdfs:range xsd:integer .
+
+ars:expanded a rdf:Property, owl:DatatypeProperty ;
+    rdfs:label "Expanded" ;
+    rdfs:comment "On an ars:FilterState: the answer asked for — true, that the record stands open; false, that it does not." ;
+    rdfs:domain ars:FilterState ;
+    rdfs:range xsd:boolean .
 
 ars:literal a rdf:Property, owl:DatatypeProperty ;
     rdfs:label "Literal" ;
@@ -700,6 +710,10 @@ ars:doesntExist a ars:FilterOp ;
 ars:isBlank a ars:FilterOp ;
     rdfs:label "Is blank" ;
     rdfs:comment "Unary: the left operand resolves to a node with no name — a blank node, written inline as [ … ]. False where it resolves to a named term, a literal, or nothing at all. What tells a record's anonymous parts, which belong beneath it, from the named terms it points at, each a record of its own: Attributes+ follows the first and stops at the second." .
+
+ars:isLiteral a ars:FilterOp ;
+    rdfs:label "Is a value" ;
+    rdfs:comment "Unary: the left operand resolves to a literal — text, a number, a date — rather than to a term. False where it resolves to a named term, a blank node, or nothing at all. What tells a row that only says something from one that points at something: nothing stands beneath a value, no statement having one for its subject, so a tree that follows what a row points at stops here whatever else it is told." .
 
 ars:Availability a rdfs:Class, owl:Class ;
     rdfs:label "Availability" ;
